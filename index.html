@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Plans d'exécution poulailler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a set of numbered drawing sheets (planches), each = drawing area + element data panel + title block. Same palette as the costing page. */
+:root{
+  --bg:#eef0ef; --panel:#fbfcfb; --ink:#1d2523; --muted:#5d6966; --line:#c9d0cd;
+  --zinc:#2f6f8f; --zinc-soft:#d8e7ee; --rebar:#b0501f; --conc:#dfe3e1; --soil:#c9b994;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151a19; --panel:#1d2422; --ink:#e4ebe8; --muted:#9aa8a4; --line:#34403d;
+  --zinc:#7cb8d6; --zinc-soft:#1f3540; --rebar:#e88a55; --conc:#2c3532; --soil:#5e5442; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a19; --panel:#1d2422; --ink:#e4ebe8; --muted:#9aa8a4; --line:#34403d;
+  --zinc:#7cb8d6; --zinc-soft:#1f3540; --rebar:#e88a55; --conc:#2c3532; --soil:#5e5442; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:28px 60px;display:grid;gap:26px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,4.5vw,40px);font-weight:800}
+h2{font-size:20px;font-weight:700}
+h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.lede{color:var(--muted);max-width:70ch;margin:6px 0 0}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+nav a{color:var(--zinc);text-decoration:none;border-bottom:1px solid var(--zinc-soft)}
+nav a:hover{border-bottom-color:var(--zinc)}
+.sheet{background:var(--panel);border:1.5px solid var(--ink);display:grid;min-width:0}
+.sh-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sh-head .no{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.sh-body{display:grid;grid-template-columns:1fr 290px;min-width:0}
+.sh-body.full{grid-template-columns:1fr}
+@media (max-width:860px){.sh-body{grid-template-columns:1fr}}
+.draw{padding:14px;display:grid;gap:16px;min-width:0;border-right:1px solid var(--line)}
+.sh-body.full .draw{border-right:0}
+@media (max-width:860px){.draw{border-right:0;border-bottom:1px solid var(--line)}}
+.draw .row{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:end}
+@media (max-width:640px){.draw .row{grid-template-columns:1fr}}
+figure{margin:0;display:grid;gap:6px;min-width:0}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--ink);font-family:var(--f-display);letter-spacing:.02em}
+.scroll{overflow-x:auto}
+svg{width:100%;height:auto;display:block}
+.data{padding:14px 16px;display:grid;gap:14px;align-content:start;font-size:14px;min-width:0}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+dt{color:var(--muted)} dd{margin:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.cart{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);font-size:12px}
+.cart div{padding:6px 12px;border-right:1px solid var(--line);display:grid}
+.cart div:last-child{border-right:0;margin-left:auto}
+.cart span{color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:10px}
+.cart b{font-family:var(--f-mono);font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;font-weight:600;padding:6px 8px;border-bottom:2px solid var(--ink);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+tr.grp td{font-weight:600;background:var(--zinc-soft)}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+.tbl{overflow-x:auto}
+.note{font-size:13px;color:var(--muted);margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:10px;vertical-align:middle;margin-right:6px}
+/* paramètres + devis */
+.work{display:grid;grid-template-columns:330px 1fr;align-items:start}
+@media (max-width:900px){.work{grid-template-columns:1fr}}
+.params{padding:14px 16px;display:grid;gap:16px;border-right:1px solid var(--line);min-width:0}
+@media (max-width:900px){.params{border-right:0;border-bottom:1px solid var(--line)}}
+.devis{padding:14px 16px;display:grid;gap:14px;min-width:0}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+legend{padding:0;margin-bottom:6px}
+.f{display:grid;grid-template-columns:1fr 104px;align-items:center;gap:8px;font-size:14px}
+.f small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.f input{width:100%;font-family:var(--f-mono);font-size:14px;padding:6px 8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);text-align:right}
+input:focus-visible,button:focus-visible{outline:2px solid var(--zinc);outline-offset:1px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:14px;font-weight:600;padding:8px 14px;border:1px solid var(--zinc);background:var(--zinc);color:var(--panel);cursor:pointer}
+button.ghost{background:transparent;color:var(--zinc)}
+#toast{font-size:13px;color:var(--zinc);min-height:18px}
+.tag{font-size:11px;padding:1px 6px;border:1px solid var(--rebar);color:var(--rebar);white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.kpi{background:var(--panel);padding:10px 14px;display:grid;gap:2px}
+.kpi span{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi b{font-family:var(--f-mono);font-size:21px;font-weight:500;font-variant-numeric:tabular-nums}
+.kpi.total b{color:var(--zinc)}
+tr.tot td.n{color:var(--zinc)}
+.alert{background:var(--zinc-soft);border-left:3px solid var(--rebar);padding:8px 12px;font-size:14px}
+/* svg */
+.c{fill:var(--conc);stroke:var(--ink);stroke-width:1.5}
+.c2{fill:var(--conc);stroke:var(--ink);stroke-width:1}
+.w{fill:var(--muted);opacity:.55}
+.soil{fill:var(--soil);opacity:.45}
+.gnd{stroke:var(--ink);stroke-width:1.5}
+.bar{stroke:var(--rebar);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.bar.t{stroke-width:1.6}
+.st{stroke:var(--rebar);stroke-width:1;opacity:.75}
+.dot{fill:var(--rebar)}
+.roof{stroke:var(--zinc);stroke-width:3.5;fill:none}
+.ax{stroke:var(--muted);stroke-width:.8;stroke-dasharray:10 3 2 3}
+.dim{stroke:var(--muted);stroke-width:.9;fill:none}
+.tk{stroke:var(--ink);stroke-width:1.2}
+.tx{fill:var(--ink);font-family:var(--f-mono);font-size:13px}
+.tx.s{font-size:11.5px;fill:var(--muted)}
+.tx.b{font-family:var(--f-display);font-weight:700;font-size:15px}
+.tx.r{fill:var(--rebar)}
+.pt{stroke:var(--rebar);stroke-width:3}
+.beam{stroke:var(--zinc);stroke-width:7}
+.post{fill:var(--ink)}
+.cut{stroke:var(--ink);stroke-width:2}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Plans d'exécution poulailler</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+  <nav aria-label="Planches">
+    <a href="#prix">Paramètres et devis</a><a href="#pl1">1 · Repérage</a><a href="#pl2">2 · Coupes générales</a><a href="#pl3">3 · Poutrelle P1</a><a href="#pl4">4 · Poutre faîtière PF</a><a href="#pl5">5 · Poteaux et semelles</a><a href="#pl6">6 · Chaînage CH</a><a href="#pl7">7 · Nomenclature et quantités</a>
+  </nav>
+  <div class="legend"><span><i style="background:var(--conc);border:1px solid var(--ink)"></i>béton</span><span><i style="background:var(--rebar)"></i>aciers</span><span><i style="background:var(--zinc)"></i>tôles / poutre faîtière</span><span><i style="background:var(--muted);opacity:.55"></i>maçonnerie existante</span></div>
+  <section class="sheet" id="prix">
+    <div class="sh-head"><h2>Paramètres et devis</h2><span class="no">Modifiez une case, tout se recalcule</span></div>
+    <div class="work">
+      <div class="params">
+        <fieldset id="g-geo"><legend><h3>Géométrie</h3></legend></fieldset>
+        <fieldset id="g-prix"><legend><h3>Prix unitaires (FCFA)</h3></legend></fieldset>
+        <div class="btns">
+          <button type="button" id="copy">Copier le devis pour Excel</button>
+          <button type="button" class="ghost" id="reset">Valeurs par défaut</button>
+        </div>
+        <div id="toast" role="status"></div>
+      </div>
+      <div class="devis">
+        <div class="kpis" id="kpis"></div>
+        <div id="alerts" style="display:grid;gap:6px"></div>
+        <div class="tbl"><table id="t-devis"></table></div>
+        <p class="note">Prix du fer et du ciment : moyennes nationales ANSD, 2ᵉ trimestre 2026 (fer 6 ≈ 39 700, fer 8 ≈ 49 400, fer 10 ≈ 48 360, fer 12 ≈ 48 790 FCFA les 100 kg ; ciment ≈ 70 000 FCFA la tonne en gros). Les lignes « à vérifier » sont des estimations à remplacer par vos devis fournisseurs. Les valeurs saisies restent enregistrées dans ce navigateur.</p>
+      </div>
+    </div>
+  </section>
+  <div id="sheets" style="display:grid;gap:26px"></div>
+</div>
+
+<script>
+/* ---------- Données (cas 15 × 9 m) ---------- */
+const FIELDS=[
+ ['g-geo','L','Longueur intérieure','m',15,.1],
+ ['g-geo','W','Largeur intérieure','m',9,.1],
+ ['g-geo','H','Hauteur des murs','m',3,.1],
+ ['g-geo','pente','Pente du toit','%',15,1],
+ ['g-geo','deb','Débord de toiture','m',.3,.05],
+ ['g-geo','ent','Entraxe max. poutrelles','m',1.2,.05,'appuis des tôles'],
+ ['g-geo','portee','Portée max. poutre faîtière','m',5.5,.1,'fixe le nombre de poteaux'],
+ ['g-geo','fond','Profondeur des semelles','m',.8,.1],
+ ['g-geo','toleL','Longueur d\'une tôle','m',2,.1],
+ ['g-geo','toleU','Largeur utile d\'une tôle','m',.8,.05],
+ ['g-prix','pCim','Ciment, sac de 50 kg','',3800,50],
+ ['g-prix','pSab','Sable, m³','',12000,500,'à vérifier'],
+ ['g-prix','pGra','Gravier, m³','',25000,500,'à vérifier'],
+ ['g-prix','p6','Fer HA6, kg','',397,1],
+ ['g-prix','p8','Fer HA8, kg','',494,1],
+ ['g-prix','p10','Fer HA10, kg','',484,1],
+ ['g-prix','p12','Fer HA12, kg','',488,1],
+ ['g-prix','pFil','Fil à ligaturer, kg','',1200,50],
+ ['g-prix','pTole','Tôle ondulée, pièce','',4500,100,'à vérifier'],
+ ['g-prix','pFait','Faîtière, pièce','',3500,100,'à vérifier'],
+ ['g-prix','pFix','Crochet / tige de fixation','',150,10],
+ ['g-prix','pCoff','Coffrage bois (forfait)','',150000,5000],
+ ['g-prix','pMO','Main-d\'œuvre (forfait)','',400000,10000],
+ ['g-prix','pTrans','Transport (forfait)','',75000,5000],
+ ['g-prix','imprev','Imprévus','%',10,1],
+];
+const DEF=Object.fromEntries(FIELDS.map(x=>[x[1],x[4]]));DEF.chain=true;
+const KEY='poulailler-plans-v1';
+let P={...DEF};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)P={...DEF,...s};}catch(err){}
+const $=id=>document.getElementById(id);
+function buildForm(){
+  FIELDS.forEach(([g,k,lab,u,,step,hint])=>{
+    const row=document.createElement('label');row.className='f';row.htmlFor='in-'+k;
+    row.innerHTML=`<span>${lab}${u?` <span style="color:var(--muted);font-family:var(--f-mono)">(${u})</span>`:''}${hint?`<small>${hint==='à vérifier'?'<span class="tag">à vérifier</span>':hint}</small>`:''}</span><input type="number" id="in-${k}" step="${step}" min="0">`;
+    $(g).appendChild(row);});
+  const c=document.createElement('label');c.className='chk';c.htmlFor='in-chain';
+  c.innerHTML='<input type="checkbox" id="in-chain"><span>Inclure le chaînage en tête de mur<small style="display:block;color:var(--muted);font-size:12px">décochez s\'il existe déjà</small></span>';
+  $('g-geo').appendChild(c);
+  sync();
+  document.querySelectorAll('.params input').forEach(i=>i.addEventListener('input',()=>{read();save();render();}));
+}
+function sync(){FIELDS.forEach(x=>$('in-'+x[1]).value=P[x[1]]);$('in-chain').checked=!!P.chain;}
+function read(){FIELDS.forEach(x=>{const v=parseFloat($('in-'+x[1]).value);if(!isNaN(v)&&v>0)P[x[1]]=v;else if(x[1]==='imprev'&&v===0)P[x[1]]=0;});P.chain=$('in-chain').checked;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P));}catch(err){}}
+
+function render(){
+const KG={6:.222,8:.395,10:.617,12:.888};
+const half=P.W/2, rise=half*P.pente/100, ramp=Math.hypot(half,rise), debR=P.deb*ramp/half;
+const nInt=Math.ceil(P.L/P.ent), perSide=nInt+1, nP=2*perSide, e=P.L/nInt;
+const Lp=ramp+.15+debR+.10;
+const nSpan=Math.ceil(P.L/P.portee), span=P.L/nSpan, nPost=nSpan+1, Lb=P.L+.20;
+const zTopBeam=P.H+rise, zBotBeam=zTopBeam-.40;
+const Hc=zBotBeam+(P.fond-.30);            // poteau : dessus semelle → sous poutre
+const perCH=2*(P.L+P.W)+.6;
+const f=(v,d=2)=>Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* Éléments : béton + barres (repère, Ø, nb/élément, longueur unitaire, forme) */
+const EL=[
+ {id:'P1',name:'Poutrelle',n:nP,sec:[.15,.20],len:Lp,bars:[
+   ['1',10,2,Lp+.20,'filante inf. + crochets'],['2',8,2,Lp+.20,'filante sup. + crochets'],['3',6,Math.ceil(Lp/.20)+1,.60,'cadre 10×15, e = 20']]},
+ {id:'PF',name:'Poutre faîtière',n:1,sec:[.20,.40],len:Lb,bars:[
+   ['4',12,3,Lb+.60,'filante inf., recouvr. 60'],['5',12,3,Lb+.60,'filante sup., recouvr. 60'],['6',6,Math.ceil(Lb/.15)+1,1.10,'cadre 15×35, e = 15']]},
+ {id:'PO',name:'Poteau',n:nPost,sec:[.20,.20],len:Hc,bars:[
+   ['7',12,4,Hc+.80,'verticale + retour 20 en pied'],['8',6,Math.ceil(Hc/.15)+1,.70,'cadre 15×15, e = 15']]},
+ {id:'S',name:'Semelle',n:nPost,vol:.8*.8*.3,prop:.8*.8*.05,bars:[
+   ['9',10,12,1.00,'nappe inf. 6 + 6, crochets relevés']]},
+ {id:'CH',name:'Chaînage',n:1,sec:[.15,.20],len:perCH,bars:[
+   ['10',10,4,perCH,'filante, recouvr. 50'],['11',6,Math.ceil(perCH/.20)+1,.60,'cadre 10×15, e = 20']]},
+];
+if(!P.chain)EL.pop();
+EL.forEach(x=>{x.v1=x.vol??x.sec[0]*x.sec[1]*x.len;x.v=x.v1*x.n;
+  x.kg=x.bars.reduce((a,b)=>a+b[2]*b[3]*KG[b[1]],0);});
+const unitTable=x=>{
+  let r=`<table><thead><tr><th>Rep.</th><th>Ø</th><th class="n">Nb</th><th class="n">L (m)</th></tr></thead><tbody>`;
+  x.bars.forEach(b=>r+=`<tr><td>${b[0]}</td><td>HA${b[1]}</td><td class="n">${b[2]}</td><td class="n">${f(b[3])}</td></tr>`);
+  return r+'</tbody></table>';
+};
+const dataPanel=(x,extra='')=>`
+  <h3>Par élément</h3>
+  <dl><dt>Quantité</dt><dd>${x.n}</dd>${x.sec?`<dt>Section</dt><dd>${x.sec[0]*100}×${x.sec[1]*100} cm</dd><dt>Longueur</dt><dd>${f(x.len)} m</dd>`:''}
+  <dt>Béton</dt><dd>${f(x.v1,3)} m³</dd><dt>Acier</dt><dd>${f(x.kg,1)} kg</dd></dl>
+  ${unitTable(x)}
+  <h3>Total ${x.id} (×${x.n})</h3>
+  <dl><dt>Béton</dt><dd>${f(x.v)} m³</dd><dt>Acier net</dt><dd>${f(x.kg*x.n,0)} kg</dd>
+  <dt>Ciment</dt><dd>${f(x.v*350/50,1)} sacs</dd><dt>Sable</dt><dd>${f(x.v*.4)} m³</dd><dt>Gravier</dt><dd>${f(x.v*.8)} m³</dd></dl>${extra}`;
+
+/* ---------- Primitives SVG ---------- */
+const T=(x,y,s,c='tx',a='middle',rot)=>`<text class="${c}" x="${x}" y="${y}" text-anchor="${a}"${rot?` transform="rotate(${rot} ${x} ${y})"`:''}>${s}</text>`;
+function dimH(x1,x2,y,lab,off=0){return `<line class="dim" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line class="tk" x1="${x1-4}" y1="${y+4}" x2="${x1+4}" y2="${y-4}"/><line class="tk" x1="${x2-4}" y1="${y+4}" x2="${x2+4}" y2="${y-4}"/>`+T((x1+x2)/2+off,y-5,lab);}
+function dimV(x,y1,y2,lab,side=-1){return `<line class="dim" x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/><line class="tk" x1="${x-4}" y1="${y1+4}" x2="${x+4}" y2="${y1-4}"/><line class="tk" x1="${x-4}" y1="${y2+4}" x2="${x+4}" y2="${y2-4}"/>`+T(x+side*7,(y1+y2)/2,lab,'tx','middle',-90);}
+/* Coupe de section : b,h en m ; bars bas/haut [n,Ø] */
+function section(b,h,bot,top,label,opt={}){
+  const s=opt.s||800, pad=46, W=b*s, H=h*s, c=.025*s, VW=W+2*pad+ (opt.extraW||0), VH=H+2*pad;
+  let o=`<rect class="c" x="${pad}" y="${pad}" width="${W}" height="${H}"/>`;
+  o+=`<rect class="bar t" x="${pad+c}" y="${pad+c}" width="${W-2*c}" height="${H-2*c}" rx="4"/>`;
+  o+=`<line class="bar t" x1="${pad+c+2}" y1="${pad+c+12}" x2="${pad+c+12}" y2="${pad+c+2}"/>`;
+  const row=(n,d,y)=>{for(let i=0;i<n;i++){const x=pad+c+d/1000*s/2+3+(n===1?0:i*(W-2*c-d/1000*s-6)/(n-1));o+=`<circle class="dot" cx="${x}" cy="${y}" r="${Math.max(3.5,d/1000*s/2)}"/>`;}};
+  row(bot[0],bot[1],pad+H-c-bot[1]/1000*s/2-3);
+  if(top) row(top[0],top[1],pad+c+top[1]/1000*s/2+3);
+  o+=dimH(pad,pad+W,pad-14,f(b*100,0));
+  o+=dimV(pad-14,pad,pad+H,f(h*100,0));
+  o+=T(pad+W+8,pad+H-c,`${bot[0]} HA${bot[1]}`,'tx r','start');
+  if(top)o+=T(pad+W+8,pad+c+8,`${top[0]} HA${top[1]}`,'tx r','start');
+  o+=T(pad+W+8,pad+H/2+4,opt.st||'cadre HA6','tx s','start');
+  return `<svg viewBox="0 0 ${VW+70} ${VH}" role="img" aria-label="${label}">${o}</svg>`;
+}
+
+/* ---------- Planche 1 : repérage ---------- */
+function pl1(){
+  const pad=70, s=Math.min(900/P.L,440/P.W), w=P.L*s, h=P.W*s, t=9;
+  let o=`<rect class="w" x="${pad-t}" y="${pad-t}" width="${w+2*t}" height="${h+2*t}"/><rect fill="var(--panel)" x="${pad}" y="${pad}" width="${w}" height="${h}"/>`;
+  o+=`<rect fill="none" stroke="var(--rebar)" stroke-width="2" stroke-dasharray="6 4" x="${pad-t/2}" y="${pad-t/2}" width="${w+t}" height="${h+t}"/>`;
+  for(let i=0;i<=nInt;i++){const x=pad+i*e*s;o+=`<line class="pt" x1="${x}" y1="${pad}" x2="${x}" y2="${pad+h/2-5}"/><line class="pt" x1="${x}" y1="${pad+h/2+5}" x2="${x}" y2="${pad+h}"/>`;}
+  o+=`<line class="beam" x1="${pad}" y1="${pad+h/2}" x2="${pad+w}" y2="${pad+h/2}"/>`;
+  for(let j=0;j<=nSpan;j++){const x=pad+j*span*s;o+=`<rect fill="none" stroke="var(--muted)" stroke-dasharray="3 2" x="${x-.4*s}" y="${pad+h/2-.4*s}" width="${.8*s}" height="${.8*s}"/><rect class="post" x="${x-.1*s-3}" y="${pad+h/2-.1*s-3}" width="${.2*s+6}" height="${.2*s+6}"/>`+T(x,pad+h/2+.4*s+16,`PO${j+1} / S${j+1}`,'tx s');}
+  o+=T(pad+w-e*s*1.5,pad+h/4,'P1','tx b r')+T(pad+w-e*s*1.5,pad+3*h/4,'P1','tx b r');
+  o+=T(pad+w/2+e*s/2,pad+h/2-12,'PF 20×40','tx b');
+  o+=T(pad+w/2,pad-t-8,'CH 15×20 (pourtour)','tx s');
+  // cotes
+  o+=dimH(pad,pad+w,pad-40,f(P.L)+' m');
+  for(let j=0;j<nSpan;j++)o+=dimH(pad+j*span*s,pad+(j+1)*span*s,pad+h+48,f(span));
+  o+=dimH(pad,pad+e*s,pad+h+22,f(e,3),0);
+  o+=dimV(pad-40,pad,pad+h,f(P.W)+' m');
+  o+=dimV(pad+w+30,pad,pad+h/2,f(half),1)+dimV(pad+w+30,pad+h/2,pad+h,f(half),1);
+  // traits de coupe
+  const xa=pad+w*0.62;o+=`<line class="cut" x1="${xa}" y1="${pad-24}" x2="${xa}" y2="${pad-8}"/><line class="cut" x1="${xa}" y1="${pad+h+8}" x2="${xa}" y2="${pad+h+28}"/>`+T(xa+10,pad-12,'A','tx b','start')+T(xa+10,pad+h+24,'A','tx b','start');
+  const VW=w+2*pad+20, VH=h+2*pad+10;
+  return {svg:`<div class="scroll"><svg viewBox="0 0 ${VW} ${VH}" style="min-width:560px" role="img" aria-label="Plan de repérage">${o}</svg></div>`};
+}
+/* ---------- Planche 2 : coupes générales ---------- */
+function coupeA(){
+  const pad=70, s=Math.min(700/(P.W+2*P.deb),330/(zTopBeam+P.fond+.3)), X=m=>pad+(m+P.deb)*s, gy=pad+(zTopBeam+.3)*s, Y=z=>gy-z*s;
+  const VW=(P.W+2*P.deb)*s+2*pad+40, VH=gy+P.fond*s+70;
+  let o=`<rect class="soil" x="0" y="${gy}" width="${VW}" height="${P.fond*s+70}"/><line class="gnd" x1="0" y1="${gy}" x2="${VW}" y2="${gy}"/>`;
+  const tw=.15*s;
+  o+=`<rect class="w" x="${X(0)-tw}" y="${Y(P.H-.2)}" width="${tw}" height="${(P.H-.2)*s}"/><rect class="w" x="${X(P.W)}" y="${Y(P.H-.2)}" width="${tw}" height="${(P.H-.2)*s}"/>`;
+  o+=`<rect class="c2" x="${X(0)-tw}" y="${Y(P.H)}" width="${tw}" height="${.2*s}"/><rect class="c2" x="${X(P.W)}" y="${Y(P.H)}" width="${tw}" height="${.2*s}"/>`;
+  const pc=X(half);
+  o+=`<rect class="c2" x="${pc-.1*s}" y="${Y(zTopBeam)}" width="${.2*s}" height="${.4*s}"/>`;
+  o+=`<rect class="c2" x="${pc-.1*s}" y="${Y(zBotBeam)}" width="${.2*s}" height="${(zBotBeam+P.fond-.3)*s}"/>`;
+  o+=`<rect class="c2" x="${pc-.4*s}" y="${Y(-(P.fond-.3))}" width="${.8*s}" height="${.3*s}"/>`;
+  // poutrelles (dessus) + tôles
+  const ph=.2*s, rd=P.deb*rise/half;
+  [[-1],[1]].forEach(([sg])=>{const xw=sg<0?X(-P.deb):X(P.W+P.deb);
+    o+=`<polygon class="c2" points="${xw},${Y(P.H-rd)} ${pc},${Y(zTopBeam)} ${pc},${Y(zTopBeam)-ph} ${xw},${Y(P.H-rd)-ph}"/>`;});
+  o+=`<polyline class="roof" points="${X(-P.deb)},${Y(P.H-rd)-ph-3} ${pc},${Y(zTopBeam)-ph-3} ${X(P.W+P.deb)},${Y(P.H-rd)-ph-3}"/>`;
+  o+=`<line class="ax" x1="${pc}" y1="${Y(zTopBeam)-ph-30}" x2="${pc}" y2="${Y(-P.fond)+20}"/>`;
+  // cotes
+  o+=dimH(X(0),X(P.W),gy+P.fond*s+40,f(P.W));
+  o+=dimH(X(0),pc,Y(zTopBeam)-ph-40,f(half))+dimH(pc,X(P.W),Y(zTopBeam)-ph-40,f(half));
+  o+=dimH(X(-P.deb),X(0),Y(P.H)+44,f(P.deb));
+  o+=dimV(X(0)+22,Y(0),Y(P.H),'+'+f(P.H),1);
+  o+=dimV(pc+40,Y(0),Y(zTopBeam),'+'+f(zTopBeam),1);
+  o+=dimV(pc-60,Y(0),Y(-P.fond),'−'+f(P.fond),-1);
+  o+=T((X(0)+pc)/2-10,Y(P.H+rise/2)-ph-14,`P1 · pente ${P.pente} %`,'tx s');
+  o+=T(pc+.1*s+6,Y(zTopBeam-.25),'PF','tx b','start');
+  o+=T(pc+.1*s+6,Y(1.5),'PO','tx b','start');
+  o+=T(pc+.4*s+6,Y(-(P.fond-.15)),'S','tx b','start');
+  o+=T(X(P.W)+tw+6,Y(P.H-.1),'CH','tx b','start');
+  o+=T(X(P.W)+tw+6,Y(1.5),'mur existant','tx s','start');
+  return `<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Coupe transversale A-A">${o}</svg>`;
+}
+function coupeB(){
+  const pad=60, s=Math.min(880/(P.L+.6),300/(zTopBeam+P.fond+.4)), X=m=>pad+(m+.3)*s, gy=pad+(zTopBeam+.4)*s, Y=z=>gy-z*s;
+  const VW=(P.L+.6)*s+2*pad, VH=gy+P.fond*s+70;
+  let o=`<rect class="soil" x="0" y="${gy}" width="${VW}" height="${P.fond*s+70}"/><line class="gnd" x1="0" y1="${gy}" x2="${VW}" y2="${gy}"/>`;
+  o+=`<rect class="c2" x="${X(-.1)}" y="${Y(zTopBeam)}" width="${Lb*s}" height="${.4*s}"/>`;
+  o+=`<rect class="w" x="${X(-.25)}" y="${Y(P.H)}" width="${.15*s}" height="${P.H*s}"/><rect class="w" x="${X(P.L+.1)}" y="${Y(P.H)}" width="${.15*s}" height="${P.H*s}"/>`;
+  for(let j=0;j<=nSpan;j++){const x=X(j*span);
+    o+=`<rect class="c2" x="${x-.1*s}" y="${Y(zBotBeam)}" width="${.2*s}" height="${(zBotBeam+P.fond-.3)*s}"/><rect class="c2" x="${x-.4*s}" y="${Y(-(P.fond-.3))}" width="${.8*s}" height="${.3*s}"/>`;
+    o+=`<line class="ax" x1="${x}" y1="${Y(zTopBeam)-24}" x2="${x}" y2="${Y(-P.fond)+16}"/>`+T(x,Y(zTopBeam)-30,`PO${j+1}`,'tx s');}
+  for(let i=0;i<=nInt;i++){const x=X(i*e);o+=`<rect fill="var(--rebar)" opacity=".8" x="${x-.075*s}" y="${Y(zTopBeam)-.2*s}" width="${.15*s}" height="${.2*s}"/>`;}
+  for(let j=0;j<nSpan;j++)o+=dimH(X(j*span),X((j+1)*span),gy+P.fond*s+40,f(span));
+  o+=dimH(X(-.1),X(P.L+.1),Y(zTopBeam)-.2*s-50,'PF · '+f(Lb)+' m');
+  o+=dimV(X(P.L)+.4*s+24,Y(0),Y(zBotBeam),'+'+f(zBotBeam),1);
+  return `<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Coupe longitudinale B-B">${o}</svg>`;
+}
+/* ---------- Élévations de ferraillage ---------- */
+function elevPoutrelle(){
+  const pad=50, s=150, x0=pad, L=Lp*s, H=.20*s, y0=60, c=.025*s;
+  let o=`<rect class="c" x="${x0}" y="${y0}" width="${L}" height="${H}"/>`;
+  // appuis
+  o+=`<rect class="w" x="${x0+debR*s}" y="${y0+H}" width="${.15*s}" height="22"/>`+T(x0+debR*s+.075*s,y0+H+36,'mur + CH','tx s');
+  o+=`<rect class="c2" x="${x0+L-.2*s}" y="${y0+H}" width="${.2*s}" height="22"/>`+T(x0+L-.1*s,y0+H+36,'PF','tx s');
+  const nc=Math.ceil(Lp/.2)+1;
+  for(let i=0;i<nc;i++){const x=x0+c+i*(L-2*c)/(nc-1);o+=`<line class="st" x1="${x}" y1="${y0+c}" x2="${x}" y2="${y0+H-c}"/>`;}
+  o+=`<path class="bar" d="M${x0+c} ${y0+H-c-14} V${y0+H-c} H${x0+L-c} V${y0+H-c-14}"/>`;
+  o+=`<path class="bar t" d="M${x0+c} ${y0+c+14} V${y0+c} H${x0+L-c} V${y0+c+14}"/>`;
+  o+=dimH(x0,x0+L,y0-18,f(Lp)+' m');
+  o+=dimH(x0,x0+debR*s,y0+H+58,f(debR))+dimH(x0+debR*s+.15*s,x0+L-.2*s,y0+H+58,'portée '+f(ramp));
+  o+=T(x0+L+8,y0+c+4,'② 2 HA8','tx r','start')+T(x0+L+8,y0+H-c+4,'① 2 HA10','tx r','start')+T(x0+L*0.35,y0-38,'③ cadres HA6 e = 20 cm ('+nc+')','tx r');
+  const cx=x0+L*0.55;o+=`<line class="cut" x1="${cx}" y1="${y0-10}" x2="${cx}" y2="${y0+H+10}"/>`+T(cx+8,y0+H+12,'1','tx b','start');
+  return `<div class="scroll"><svg viewBox="0 0 ${L+2*pad+80} ${y0+H+80}" style="min-width:620px" role="img" aria-label="Élévation poutrelle P1">${o}</svg></div>`;
+}
+function elevPF(){
+  const pad=50, s=55, vs=110, x0=pad, L=Lb*s, H=.40*vs, y0=70, c=.025*vs;
+  let o=`<rect class="c" x="${x0}" y="${y0}" width="${L}" height="${H}"/>`;
+  for(let j=0;j<=nSpan;j++){const x=x0+(.1+j*span)*s;o+=`<rect class="c2" x="${x-.1*s}" y="${y0+H}" width="${.2*s}" height="30"/>`+T(x,y0+H+44,'PO'+(j+1),'tx s');}
+  const nc=Math.ceil(Lb/.15)+1;for(let i=0;i<nc;i+=2){const x=x0+c+i*(L-2*c)/(nc-1);o+=`<line class="st" x1="${x}" y1="${y0+c}" x2="${x}" y2="${y0+H-c}"/>`;}
+  o+=`<path class="bar" d="M${x0+c} ${y0+H-c-16} V${y0+H-c} H${x0+L*.62}"/><path class="bar" d="M${x0+L*.58} ${y0+H-c-3} H${x0+L-c} V${y0+H-c-16}"/>`;
+  o+=`<path class="bar" d="M${x0+c} ${y0+c+16} V${y0+c} H${x0+L*.40}"/><path class="bar" d="M${x0+L*.36} ${y0+c+3} H${x0+L-c} V${y0+c+16}"/>`;
+  o+=T(x0+L*.38,y0-6,'recouvr. 60','tx s')+T(x0+L*.60,y0+H+16,'recouvr. 60','tx s');
+  o+=dimH(x0,x0+L,y0-30,f(Lb)+' m');
+  for(let j=0;j<nSpan;j++)o+=dimH(x0+(.1+j*span)*s,x0+(.1+(j+1)*span)*s,y0+H+70,f(span));
+  o+=T(x0+L+8,y0+c+4,'⑤ 3 HA12','tx r','start')+T(x0+L+8,y0+H-c+4,'④ 3 HA12','tx r','start');
+  o+=T(x0+L*.15,y0-48,'⑥ cadres HA6 e = 15 cm ('+nc+')','tx r','start');
+  const cx=x0+L*.2;o+=`<line class="cut" x1="${cx}" y1="${y0-10}" x2="${cx}" y2="${y0+H+10}"/>`+T(cx+8,y0+H+14,'2','tx b','start');
+  return `<div class="scroll"><svg viewBox="0 0 ${L+2*pad+90} ${y0+H+90}" style="min-width:640px" role="img" aria-label="Élévation poutre faîtière PF (hauteurs dilatées)">${o}</svg></div>`;
+}
+function elevPoteau(){
+  const s=62, pad=60, gy=pad+(zBotBeam+.45)*s, Y=z=>gy-z*s, x=pad+90, w=.2*s, zs=-(P.fond-.3);
+  const VH=gy+P.fond*s+60, VW=330;
+  let o=`<rect class="soil" x="0" y="${gy}" width="${VW}" height="${P.fond*s+60}"/><line class="gnd" x1="0" y1="${gy}" x2="${VW}" y2="${gy}"/>`;
+  o+=`<rect class="c2" x="${x-.3*s}" y="${Y(zBotBeam+.4)}" width="${.8*s}" height="${.4*s}" opacity=".6"/>`+T(x+.55*s,Y(zBotBeam+.15),'PF','tx s','start');
+  o+=`<rect class="c" x="${x}" y="${Y(zBotBeam)}" width="${w}" height="${Hc*s}"/>`;
+  o+=`<rect class="c" x="${x+w/2-.4*s}" y="${Y(zs)}" width="${.8*s}" height="${.3*s}"/>`;
+  o+=`<rect fill="var(--muted)" opacity=".4" x="${x+w/2-.4*s}" y="${Y(-P.fond)}" width="${.8*s}" height="${.05*s}"/>`;
+  const c=.025*s, nc=Math.ceil(Hc/.15)+1;
+  for(let i=0;i<nc;i+=1){const y=Y(zs)-c-i*(Hc*s-2*c)/(nc-1);o+=`<line class="st" x1="${x+c}" y1="${y}" x2="${x+w-c}" y2="${y}"/>`;}
+  const yb=Y(-P.fond+.05+.04);
+  o+=`<path class="bar" d="M${x+c} ${Y(zBotBeam+.35)} V${yb} H${x+c-.2*s}"/><path class="bar" d="M${x+w-c} ${Y(zBotBeam+.35)} V${yb} H${x+w-c+.2*s}"/>`;
+  o+=`<path class="bar t" d="M${x+w/2-.4*s+c} ${yb-10} V${yb} H${x+w/2+.4*s-c} V${yb-10}"/>`;
+  o+=dimV(x-28,Y(zs),Y(zBotBeam),f(Hc));
+  o+=dimV(x-56,Y(0),Y(-P.fond),'−'+f(P.fond));
+  o+=dimH(x+w/2-.4*s,x+w/2+.4*s,Y(-P.fond)+30,'0,80');
+  o+=T(x+w+8,Y(2),'⑦ 4 HA12','tx r','start')+T(x+w+8,Y(1.4),'⑧ cadres HA6','tx r','start')+T(x+w+8,Y(1.4)+16,'e = 15 ('+nc+')','tx s','start');
+  o+=T(x+w/2+.4*s+6,Y(zs+.05),'⑨ 6+6 HA10','tx r','start');
+  o+=T(x+w/2+.4*s+6,Y(-P.fond+.05),'propreté 5 cm','tx s','start');
+  const cy=Y(1);o+=`<line class="cut" x1="${x-10}" y1="${cy}" x2="${x+w+10}" y2="${cy}"/>`+T(x-14,cy+4,'3','tx b','end');
+  return `<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Élévation poteau et semelle">${o}</svg>`;
+}
+function semellePlan(){
+  const s=260, pad=40, W=.8*s, c=.05*s;
+  let o=`<rect class="c" x="${pad}" y="${pad}" width="${W}" height="${W}"/><rect fill="var(--ink)" x="${pad+W/2-.1*s}" y="${pad+W/2-.1*s}" width="${.2*s}" height="${.2*s}" opacity=".85"/>`;
+  for(let i=0;i<6;i++){const p=pad+c+i*(W-2*c)/5;o+=`<line class="bar t" x1="${pad+c}" y1="${p}" x2="${pad+W-c}" y2="${p}"/><line class="bar t" x1="${p}" y1="${pad+c}" x2="${p}" y2="${pad+W-c}"/>`;}
+  o+=dimH(pad,pad+W,pad-12,'80')+dimV(pad-12,pad,pad+W,'80');
+  return `<svg viewBox="0 0 ${W+2*pad+10} ${W+2*pad}" role="img" aria-label="Semelle vue en plan">${o}</svg>`;
+}
+
+/* ---------- Assemblage ---------- */
+const sheet=(n,id,title,draw,data,scale)=>`<section class="sheet" id="pl${n}"><div class="sh-head"><h2>${title}</h2><span class="no">Planche ${n} / 7</span></div>
+  <div class="sh-body${data?'':' full'}"><div class="draw">${draw}</div>${data?`<div class="data">${data}</div>`:''}</div>
+  <div class="cart"><div><span>Projet</span><b>Poulailler ${f(P.L)} × ${f(P.W)}</b></div><div><span>Repère</span><b>${id}</b></div><div><span>Échelle</span><b>${scale}</b></div><div><span>Date</span><b>13/10/2026</b></div></div></section>`;
+
+const [P1,PF,PO,S,CH]=EL;
+let html='';
+html+=sheet(1,'—','Plan de repérage',`<figure>${pl1().svg}<figcaption><b>Vue de dessus.</b> ${nP} poutrelles P1 (${perSide} par pente, entraxe ${f(e,3)} m), poutre faîtière PF sur ${nPost} poteaux PO1 à PO${nPost} et semelles S1 à S${nPost}, chaînage CH en tête des murs.</figcaption></figure>`,
+ `<h3>Éléments</h3><dl><dt>P1 poutrelles</dt><dd>${nP}</dd><dt>PF poutre faîtière</dt><dd>1</dd><dt>PO poteaux</dt><dd>${nPost}</dd><dt>S semelles</dt><dd>${nPost}</dd><dt>CH chaînage</dt><dd>${f(perCH,1)} m</dd></dl>
+  <h3>Niveaux</h3><dl><dt>Sol fini</dt><dd>±0,00</dd><dt>Dessus murs / CH</dt><dd>+${f(P.H)}</dd><dt>Sous PF</dt><dd>+${f(zBotBeam)}</dd><dt>Dessus PF</dt><dd>+${f(zTopBeam)}</dd><dt>Faîtage tôle</dt><dd>≈ +${f(zTopBeam+.2)}</dd><dt>Fond de semelle</dt><dd>−${f(P.fond)}</dd></dl>`,'indicative');
+html+=sheet(2,'A-A · B-B','Coupes générales',`<figure>${coupeA()}<figcaption><b>Coupe A-A transversale.</b> Poutrelles de ${f(Lp)} m entre le chaînage du mur et la poutre faîtière, débord de ${f(P.deb)} m. Les triangles des pignons restent ouverts (grillage).</figcaption></figure>
+  <figure><div class="scroll">${coupeB().replace('<svg','<svg style="min-width:600px"')}</div><figcaption><b>Coupe B-B longitudinale</b> dans l'axe de la poutre faîtière. PO1 et PO${nPost} sont accolés aux pignons. Les poutrelles (en coupe) reposent sur PF.</figcaption></figure>`,null,'indicative');
+html+=sheet(3,'P1','Poutrelle P1 · 15×20 · ×'+nP,`<figure>${elevPoutrelle()}<figcaption><b>Élévation.</b> Longueur mesurée le long de la pente. Crochets de 10 cm aux deux extrémités. Sceller au coulage 2 tiges filetées Ø8 ou crochets galvanisés par tôle et par appui pour la fixation des tôles.</figcaption></figure>
+  <div class="row"><figure>${section(.15,.20,[2,10],[2,8],'Coupe 1-1',{s:900})}<figcaption><b>Coupe 1-1.</b> Section 15×20 cm, enrobage 2,5 cm.</figcaption></figure>
+  <p class="note">Préfabrication conseillée au sol dans 3 ou 4 moules en bois réutilisés. Décoffrage à 2 jours, levage après 14 jours minimum, arrosage pendant 7 jours. Poser sur lit de mortier sur CH, appui de 15 cm minimum.</p></div>`,dataPanel(P1),'1/30 (élévation) · 1/5 (coupe)');
+html+=sheet(4,'PF','Poutre faîtière PF · 20×40 · ×1',`<figure>${elevPF()}<figcaption><b>Élévation</b> (hauteurs dilatées). ${nSpan} travées de ${f(span)} m. Barres de 12 m complétées par un recouvrement de 60 cm, décalé : en travée pour les aciers hauts, près d'un appui pour les aciers bas. Coulée en place sur coffrage étayé, avant la pose des poutrelles.</figcaption></figure>
+  <div class="row"><figure>${section(.20,.40,[3,12],[3,12],'Coupe 2-2',{s:600})}<figcaption><b>Coupe 2-2.</b> Section 20×40 cm.</figcaption></figure>
+  <p class="note">Les attentes des poteaux (⑦) remontent de 35 cm dans PF. Ne pas décoffrer le fond de poutre avant 21 jours.</p></div>`,dataPanel(PF),'1/100 (élévation) · 1/7,5 (coupe)');
+html+=sheet(5,'PO · S','Poteaux PO et semelles S · ×'+nPost,`<div class="row"><figure>${elevPoteau()}<figcaption><b>Élévation poteau + semelle.</b> Fouille 80×80 à −${f(P.fond)}, béton de propreté, semelle 30 cm, poteau jusqu'à +${f(zBotBeam)} sous PF.</figcaption></figure>
+  <div style="display:grid;gap:16px"><figure>${section(.20,.20,[2,12],[2,12],'Coupe 3-3',{s:700,st:'cadre HA6'})}<figcaption><b>Coupe 3-3.</b> Poteau 20×20, 4 HA12.</figcaption></figure>
+  <figure>${semellePlan()}<figcaption><b>Semelle, vue en plan.</b> 80×80×30, nappe inférieure 6 HA10 dans chaque sens (⑨), crochets relevés.</figcaption></figure></div></div>`,
+  dataPanel(PO)+`<h3>Semelle S (×${nPost})</h3><dl><dt>Béton</dt><dd>${f(S.v1,3)} m³</dd><dt>Propreté</dt><dd>${f(S.prop,3)} m³</dd><dt>Acier</dt><dd>${f(S.kg,1)} kg</dd><dt>Total béton</dt><dd>${f(S.v)} m³</dd><dt>Total acier</dt><dd>${f(S.kg*S.n,0)} kg</dd></dl>`,'1/50 · 1/7,5');
+html+=!P.chain?sheet(6,'CH','Chaînage CH · existant, non compté','<p class="note">Le chaînage est déclaré existant dans les paramètres : il n\'est pas compté dans les quantités ni le devis. Vérifiez que son dessus est de niveau à +'+f(P.H)+' pour recevoir les poutrelles.</p>',null,'—'):sheet(6,'CH','Chaînage CH · 15×20 · '+f(perCH,1)+' m',`<div class="row"><figure>${section(.15,.20,[2,10],[2,10],'Coupe 5-5',{s:900})}<figcaption><b>Coupe 5-5.</b> Chaînage coulé sur l'arase des murs, sur tout le pourtour.</figcaption></figure>
+  <p class="note">À réaliser seulement si les murs n'ont pas déjà un chaînage en tête. Recouvrements de 50 cm, retours d'angle en L. Le dessus du chaînage doit être de niveau à +${f(P.H)} pour recevoir les poutrelles. Prévoir 2 HA8 en attente tous les 2 m pour liaisonner les poutrelles d'about.</p></div>`,dataPanel(CH),'1/5');
+
+/* Planche 7 : nomenclature + quantités */
+let nom=`<table><thead><tr><th>Rep.</th><th>Élément</th><th>Ø</th><th>Forme</th><th class="n">L unit. (m)</th><th class="n">Nb / élém.</th><th class="n">Nb élém.</th><th class="n">L totale (m)</th><th class="n">Poids (kg)</th></tr></thead><tbody>`;
+const byD={6:0,8:0,10:0,12:0};
+EL.forEach(x=>x.bars.forEach(b=>{const Lt=b[2]*b[3]*x.n, kg=Lt*KG[b[1]];byD[b[1]]+=Lt;
+  nom+=`<tr><td>${b[0]}</td><td>${x.id} ${x.name}</td><td>HA${b[1]}</td><td>${b[4]}</td><td class="n">${f(b[3])}</td><td class="n">${b[2]}</td><td class="n">${x.n}</td><td class="n">${f(Lt,1)}</td><td class="n">${f(kg,1)}</td></tr>`;}));
+nom+='</tbody></table>';
+let rec=`<table><thead><tr><th>Diamètre</th><th class="n">L nette (m)</th><th class="n">L + 10 % (m)</th><th class="n">Barres de 12 m</th><th class="n">Poids (kg)</th></tr></thead><tbody>`;
+let kgT=0;[6,8,10,12].forEach(d=>{const L=byD[d]*1.1,kg=L*KG[d];kgT+=kg;rec+=`<tr><td>HA${d} (${KG[d]} kg/m)</td><td class="n">${f(byD[d],1)}</td><td class="n">${f(L,1)}</td><td class="n">${Math.ceil(L/12)}</td><td class="n">${f(kg,0)}</td></tr>`;});
+rec+=`<tr class="tot"><td>Total acier</td><td></td><td></td><td></td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
+const vRA=EL.reduce((a,x)=>a+x.v,0)*1.05, vPr=S.prop*S.n*1.05;
+const cim=vRA*350+vPr*150, sacs=Math.ceil(cim/50);
+let q=`<table><thead><tr><th>Élément</th><th class="n">Béton (m³)</th><th class="n">Ciment (sacs)</th><th class="n">Sable (m³)</th><th class="n">Gravier (m³)</th><th class="n">Acier (kg)</th></tr></thead><tbody>`;
+EL.forEach(x=>q+=`<tr><td>${x.id} ${x.name} ×${x.n}</td><td class="n">${f(x.v)}</td><td class="n">${f(x.v*350/50,1)}</td><td class="n">${f(x.v*.4)}</td><td class="n">${f(x.v*.8)}</td><td class="n">${f(x.kg*x.n,0)}</td></tr>`);
+q+=`<tr><td>Béton de propreté (150 kg/m³)</td><td class="n">${f(S.prop*S.n)}</td><td class="n">${f(S.prop*S.n*150/50,1)}</td><td class="n">${f(S.prop*S.n*.4)}</td><td class="n">${f(S.prop*S.n*.8)}</td><td class="n">–</td></tr>`;
+q+=`<tr class="tot"><td>Total avec pertes (béton +5 %, acier +10 %)</td><td class="n">${f(vRA+vPr)}</td><td class="n">${sacs}</td><td class="n">${f((vRA+vPr)*.4)}</td><td class="n">${f((vRA+vPr)*.8)}</td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
+const rows=Math.ceil((ramp+debR-.15)/(P.toleL-.15)), perRow=Math.ceil((P.L+.4)/P.toleU), nT=2*rows*perRow;
+const cov=`<table><thead><tr><th>Couverture et divers</th><th class="n">Quantité</th></tr></thead><tbody>
+ <tr><td>Tôles ondulées ${f(P.toleL)} m (${rows} rangs × ${perRow} par pente, recouvr. 15 cm)</td><td class="n">${nT}</td></tr>
+ <tr><td>Faîtières</td><td class="n">${Math.ceil((P.L+.4)/1.8)}</td></tr>
+ <tr><td>Crochets / tiges de fixation (6 par tôle)</td><td class="n">${nT*6}</td></tr>
+ <tr><td>Fil à ligaturer</td><td class="n">${Math.ceil(kgT*.015)} kg</td></tr>
+ <tr><td>Eau de gâchage</td><td class="n">≈ ${f((vRA+vPr)*175/1000,1)} m³</td></tr></tbody></table>`;
+html+=sheet(7,'—','Nomenclature des aciers et quantités',`<h3>Nomenclature des aciers</h3><div class="tbl">${nom}</div>
+ <h3>Récapitulatif par diamètre</h3><div class="tbl">${rec}</div>
+ <h3>Béton et granulats</h3><div class="tbl">${q}</div>
+ <h3>Couverture</h3><div class="tbl">${cov}</div>
+ <p class="note">Dosage béton armé : 350 kg de ciment, 400 L de sable, 800 L de gravier 5/15 et 175 L d'eau par m³, soit pour une gâchée d'un sac : 57 L de sable et 115 L de gravier (environ 3 et 6 seaux de 20 L). Sections et ferraillages à faire valider par un technicien local avant coulage.</p>`,null,'—');
+document.getElementById('sheets').innerHTML=html;
+
+/* ---------- Devis ---------- */
+const sable=(vRA+vPr)*.4, grav=(vRA+vPr)*.8, nFait=Math.ceil((P.L+.4)/1.8);
+const D=[];const add=(g,lab,q,u,pu,tag)=>D.push({g,lab,q,u,pu,t:q*pu,tag});
+add('Béton','Ciment (sacs de 50 kg)',sacs,'sac',P.pCim);
+add('Béton','Sable',+sable.toFixed(2),'m³',P.pSab,1);
+add('Béton','Gravier',+grav.toFixed(2),'m³',P.pGra,1);
+[6,8,10,12].forEach(d=>{const L=byD[d]*1.1;if(L>0)add('Acier',`Fer HA${d} (${Math.ceil(L/12)} barres de 12 m)`,Math.round(L*KG[d]),'kg',P['p'+d]);});
+add('Acier','Fil à ligaturer',Math.ceil(kgT*.015),'kg',P.pFil);
+add('Couverture',`Tôles ondulées ${f(P.toleL)} m`,nT,'pièce',P.pTole,1);
+add('Couverture','Faîtières',nFait,'pièce',P.pFait,1);
+add('Couverture','Crochets / tiges de fixation',nT*6,'pièce',P.pFix);
+add('Divers','Coffrage bois',1,'forfait',P.pCoff);
+add('Divers','Main-d\'œuvre',1,'forfait',P.pMO);
+add('Divers','Transport',1,'forfait',P.pTrans);
+const sub=D.reduce((a,x)=>a+x.t,0), imp=sub*P.imprev/100, tot=sub+imp;
+let t='<thead><tr><th>Désignation</th><th class="n">Qté</th><th>Unité</th><th class="n">P.U. (F)</th><th class="n">Montant (F)</th></tr></thead><tbody>',g='';
+D.forEach(x=>{if(x.g!==g){g=x.g;t+=`<tr class="grp"><td colspan="5">${g}</td></tr>`;}
+  t+=`<tr><td>${x.lab}${x.tag?' <span class="tag">à vérifier</span>':''}</td><td class="n">${f(x.q,x.u==='m³'?2:0)}</td><td>${x.u}</td><td class="n">${f(x.pu,0)}</td><td class="n">${f(x.t,0)}</td></tr>`;});
+t+=`<tr><td colspan="4">Sous-total</td><td class="n">${f(sub,0)}</td></tr><tr><td colspan="4">Imprévus ${f(P.imprev,0)} %</td><td class="n">${f(imp,0)}</td></tr><tr class="tot"><td colspan="4">Total estimé (FCFA)</td><td class="n">${f(tot,0)}</td></tr></tbody>`;
+$('t-devis').innerHTML=t;
+$('kpis').innerHTML=[['Poutrelles',nP],['Béton',f(vRA+vPr)+' m³'],['Acier',f(kgT,0)+' kg'],['Ciment',sacs+' sacs'],['Tôles',nT],['Total',f(tot,0)+' F']]
+  .map(([a,b],i)=>`<div class="kpi${i===5?' total':''}"><span>${a}</span><b>${b}</b></div>`).join('');
+const al=[];
+if(half>5)al.push(`Demi-portée de ${f(half)} m : au-delà de 5 m, la poutrelle 15×20 doit passer en 15×25.`);
+if(span>5.5)al.push(`Travée de poutre faîtière de ${f(span)} m : ajoutez un poteau ou augmentez la section.`);
+if(P.pente<10)al.push('Pente inférieure à 10 % : risque d\'infiltration aux recouvrements des tôles.');
+if(P.ent>1.25)al.push('Entraxe supérieur à 1,25 m : les tôles minces risquent de se déformer entre appuis.');
+$('alerts').innerHTML=al.map(a=>`<div class="alert">${a}</div>`).join('');
+$('lede').textContent=`Charpente béton armé pour la couverture en tôles d'un poulailler de ${f(P.L)} × ${f(P.W)} m (${f(P.L*P.W,0)} m²), murs existants de ${f(P.H)} m. Cotes en mètres sauf sections en centimètres. Béton dosé à 350 kg/m³, aciers HA FeE400, enrobage 2,5 cm.`;
+window.__devis={D,sub,imp,tot};
+}
+
+$('copy').addEventListener('click',()=>{
+  const d=window.__devis;
+  const lines=[['Poste','Désignation','Quantité','Unité','P.U. FCFA','Montant FCFA'].join('\t')];
+  d.D.forEach(x=>lines.push([x.g,x.lab,String(x.q).replace('.',','),x.u,x.pu,Math.round(x.t)].join('\t')));
+  lines.push(['','Sous-total','','','',Math.round(d.sub)].join('\t'),['','Imprévus '+P.imprev+' %','','','',Math.round(d.imp)].join('\t'),['','TOTAL','','','',Math.round(d.tot)].join('\t'));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{$('toast').textContent='Devis copié : collez-le dans Excel ou Google Sheets.';},()=>{$('toast').textContent='Copie refusée par le navigateur. Sélectionnez le tableau du devis et copiez-le.';});
+});
+$('reset').addEventListener('click',()=>{P={...DEF};sync();save();render();$('toast').textContent='Valeurs par défaut rétablies.';});
+buildForm();render();
+</script>
+
+</body>
+</html>
