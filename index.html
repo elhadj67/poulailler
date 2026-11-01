@@ -174,6 +174,7 @@ const FIELDS=[
  ['g-geo','fond','Profondeur des semelles','m',.8,.1],
  ['g-geo','toleL','Longueur d\'une tôle','m',2,.1],
  ['g-geo','toleU','Largeur utile d\'une tôle','m',.8,.05],
+ ['g-geo','div','Diviser fer, ciment, sable, gravier et béton par','',2,1,'1 = quantités complètes'],
  ['g-dal','ep','Épaisseur de la dalle','m',.08,.01,'8 cm conseillé, 7 cm minimum'],
  ['g-dal','her','Épaisseur du hérisson','m',.10,.01,'0 si sol déjà stable'],
  ['g-prix','pCim','Ciment, sac de 50 kg','',3800,50],
@@ -223,6 +224,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(P));}catch(err){}}
 
 function render(){
 const KG={6:.222,8:.395,10:.617,12:.888};
+const DIV=Math.max(1,P.div||1), DV=DIV>1?` ÷ ${String(DIV).replace('.',',')}`:'';
 const half=P.W/2, rise=half*P.pente/100, ramp=Math.hypot(half,rise), debR=P.deb*ramp/half;
 const nInt=Math.ceil(P.L/P.ent), perSide=nInt+1, nP=2*perSide, e=P.L/nInt;
 const Lp=ramp+.15+debR+.10;
@@ -258,9 +260,9 @@ const dataPanel=(x,extra='')=>`
   <dl><dt>Quantité</dt><dd>${x.n}</dd>${x.sec?`<dt>Section</dt><dd>${x.sec[0]*100}×${x.sec[1]*100} cm</dd><dt>Longueur</dt><dd>${f(x.len)} m</dd>`:''}
   <dt>Béton</dt><dd>${f(x.v1,3)} m³</dd><dt>Acier</dt><dd>${f(x.kg,1)} kg</dd></dl>
   ${unitTable(x)}
-  <h3>Total ${x.id} (×${x.n})</h3>
-  <dl><dt>Béton</dt><dd>${f(x.v)} m³</dd><dt>Acier net</dt><dd>${f(x.kg*x.n,0)} kg</dd>
-  <dt>Ciment</dt><dd>${f(x.v*350/50,1)} sacs</dd><dt>Sable</dt><dd>${f(x.v*.4)} m³</dd><dt>Gravier</dt><dd>${f(x.v*.8)} m³</dd></dl>${extra}`;
+  <h3>Total ${x.id} (×${x.n})${DV}</h3>
+  <dl><dt>Béton</dt><dd>${f(x.v/DIV)} m³</dd><dt>Acier net</dt><dd>${f(x.kg*x.n/DIV,0)} kg</dd>
+  <dt>Ciment</dt><dd>${f(x.v*350/50/DIV,1)} sacs</dd><dt>Sable</dt><dd>${f(x.v*.4/DIV)} m³</dd><dt>Gravier</dt><dd>${f(x.v*.8/DIV)} m³</dd></dl>${extra}`;
 
 /* ---------- Primitives SVG ---------- */
 const T=(x,y,s,c='tx',a='middle',rot)=>`<text class="${c}" x="${x}" y="${y}" text-anchor="${a}"${rot?` transform="rotate(${rot} ${x} ${y})"`:''}>${s}</text>`;
@@ -437,7 +439,7 @@ html+=sheet(4,'PF','Poutre faîtière PF · 20×40 · ×1',`<figure>${elevPF()}<
 html+=sheet(5,'PO · S','Poteaux PO et semelles S · ×'+nPost,`<div class="row"><figure>${elevPoteau()}<figcaption><b>Élévation poteau + semelle.</b> Fouille 80×80 à −${f(P.fond)}, béton de propreté, semelle 30 cm, poteau jusqu'à +${f(zBotBeam)} sous PF.</figcaption></figure>
   <div style="display:grid;gap:16px"><figure>${section(.20,.20,[2,12],[2,12],'Coupe 3-3',{s:700,st:'cadre HA6'})}<figcaption><b>Coupe 3-3.</b> Poteau 20×20, 4 HA12.</figcaption></figure>
   <figure>${semellePlan()}<figcaption><b>Semelle, vue en plan.</b> 80×80×30, nappe inférieure 6 HA10 dans chaque sens (⑨), crochets relevés.</figcaption></figure></div></div>`,
-  dataPanel(PO)+`<h3>Semelle S (×${nPost})</h3><dl><dt>Béton</dt><dd>${f(S.v1,3)} m³</dd><dt>Propreté</dt><dd>${f(S.prop,3)} m³</dd><dt>Acier</dt><dd>${f(S.kg,1)} kg</dd><dt>Total béton</dt><dd>${f(S.v)} m³</dd><dt>Total acier</dt><dd>${f(S.kg*S.n,0)} kg</dd></dl>`,'1/50 · 1/7,5');
+  dataPanel(PO)+`<h3>Semelle S (×${nPost})</h3><dl><dt>Béton</dt><dd>${f(S.v1,3)} m³</dd><dt>Propreté</dt><dd>${f(S.prop,3)} m³</dd><dt>Acier</dt><dd>${f(S.kg,1)} kg</dd><dt>Total béton${DV}</dt><dd>${f(S.v/DIV)} m³</dd><dt>Total acier${DV}</dt><dd>${f(S.kg*S.n/DIV,0)} kg</dd></dl>`,'1/50 · 1/7,5');
 html+=!P.chain?sheet(6,'CH','Chaînage CH · existant, non compté','<p class="note">Le chaînage est déclaré existant dans les paramètres : il n\'est pas compté dans les quantités ni le devis. Vérifiez que son dessus est de niveau à +'+f(P.H)+' pour recevoir les poutrelles.</p>',null,'—'):sheet(6,'CH','Chaînage CH · 15×20 · '+f(perCH,1)+' m',`<div class="row"><figure>${section(.15,.20,[2,10],[2,10],'Coupe 5-5',{s:900})}<figcaption><b>Coupe 5-5.</b> Chaînage coulé sur l'arase des murs, sur tout le pourtour.</figcaption></figure>
   <p class="note">À réaliser seulement si les murs n'ont pas déjà un chaînage en tête. Recouvrements de 50 cm, retours d'angle en L. Le dessus du chaînage doit être de niveau à +${f(P.H)} pour recevoir les poutrelles. Prévoir 2 HA8 en attente tous les 2 m pour liaisonner les poutrelles d'about.</p></div>`,dataPanel(CH),'1/5');
 
@@ -484,7 +486,7 @@ function dallageCoupe(){
   return `<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Coupe du dallage contre le mur">${o}</svg>`;
 }
 const dalData=`<h3>Dallage DA</h3><dl><dt>Surface</dt><dd>${f(surf)} m²</dd><dt>Épaisseur</dt><dd>${f(P.ep*100,0)} cm</dd>
- <dt>Béton (+5 %)</dt><dd>${f(vDal)} m³</dd><dt>Ciment</dt><dd>${f(vDal*300/50,1)} sacs</dd><dt>Sable</dt><dd>${f(vDal*.45)} m³</dd><dt>Gravier</dt><dd>${f(vDal*.8)} m³</dd>
+ <dt>Béton (+5 %)${DV}</dt><dd>${f(vDal/DIV)} m³</dd><dt>Ciment${DV}</dt><dd>${f(vDal*300/50/DIV,1)} sacs</dd><dt>Sable${DV}</dt><dd>${f(vDal*.45/DIV)} m³</dd><dt>Gravier${DV}</dt><dd>${f(vDal*.8/DIV)} m³</dd>
  ${P.treillis?`<dt>Treillis ST10</dt><dd>${nTr} pann.</dd>`:''}${P.her>0?`<dt>Hérisson (+10 %)</dt><dd>${f(vHer)} m³</dd>`:''}
  <dt>Film polyane</dt><dd>${polyM2} m²</dd><dt>Joints sciés</dt><dd>${f(jl,1)} m</dd><dt>Bande périph.</dt><dd>${f(perim,1)} m</dd></dl>`;
 html+=P.dal?sheet(7,'DA',`Dallage DA · ${f(P.ep*100,0)} cm · ${f(surf,0)} m²`,`<figure>${dallagePlan()}<figcaption><b>Vue en plan.</b> Dalle coupée en ${nJx*nJy} panneaux d'environ ${f(P.L/nJx)} × ${f(P.W/nJy)} m par des joints sciés (1/3 de l'épaisseur, dans les 24 à 48 h). Pente de 1 % vers un caniveau côté pignon pour le lavage ; le côté se choisit sur place selon la porte.</figcaption></figure>
@@ -499,16 +501,17 @@ EL.forEach(x=>x.bars.forEach(b=>{const Lt=b[2]*b[3]*x.n, kg=Lt*KG[b[1]];byD[b[1]
   nom+=`<tr><td>${b[0]}</td><td>${x.id} ${x.name}</td><td>HA${b[1]}</td><td>${b[4]}</td><td class="n">${f(b[3])}</td><td class="n">${b[2]}</td><td class="n">${x.n}</td><td class="n">${f(Lt,1)}</td><td class="n">${f(kg,1)}</td></tr>`;}));
 nom+='</tbody></table>';
 let rec=`<table><thead><tr><th>Diamètre</th><th class="n">L nette (m)</th><th class="n">L + 10 % (m)</th><th class="n">Barres de 12 m</th><th class="n">Poids (kg)</th></tr></thead><tbody>`;
-let kgT=0;[6,8,10,12].forEach(d=>{const L=byD[d]*1.1,kg=L*KG[d];kgT+=kg;rec+=`<tr><td>HA${d} (${KG[d]} kg/m)</td><td class="n">${f(byD[d],1)}</td><td class="n">${f(L,1)}</td><td class="n">${Math.ceil(L/12)}</td><td class="n">${f(kg,0)}</td></tr>`;});
+let kgT=0;[6,8,10,12].forEach(d=>{const L=byD[d]*1.1/DIV,kg=L*KG[d];kgT+=kg;rec+=`<tr><td>HA${d} (${KG[d]} kg/m)</td><td class="n">${f(byD[d],1)}</td><td class="n">${f(L,1)}</td><td class="n">${Math.ceil(L/12)}</td><td class="n">${f(kg,0)}</td></tr>`;});
 rec+=`<tr class="tot"><td>Total acier</td><td></td><td></td><td></td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
 const vRA=EL.reduce((a,x)=>a+x.v,0)*1.05, vPr=S.prop*S.n*1.05;
-const cim=vRA*350+vPr*150+vDal*300, sacs=Math.ceil(cim/50);
-const VT=vRA+vPr+vDal, SAB=(vRA+vPr)*.4+vDal*.45, GRA=VT*.8;
+const cim=(vRA*350+vPr*150+vDal*300)/DIV, sacs=Math.ceil(cim/50);
+const VT=(vRA+vPr+vDal)/DIV, SAB=((vRA+vPr)*.4+vDal*.45)/DIV, GRA=VT*.8;
 let q=`<table><thead><tr><th>Élément</th><th class="n">Béton (m³)</th><th class="n">Ciment (sacs)</th><th class="n">Sable (m³)</th><th class="n">Gravier (m³)</th><th class="n">Acier (kg)</th></tr></thead><tbody>`;
-EL.forEach(x=>q+=`<tr><td>${x.id} ${x.name} ×${x.n}</td><td class="n">${f(x.v)}</td><td class="n">${f(x.v*350/50,1)}</td><td class="n">${f(x.v*.4)}</td><td class="n">${f(x.v*.8)}</td><td class="n">${f(x.kg*x.n,0)}</td></tr>`);
-q+=`<tr><td>Béton de propreté (150 kg/m³)</td><td class="n">${f(S.prop*S.n)}</td><td class="n">${f(S.prop*S.n*150/50,1)}</td><td class="n">${f(S.prop*S.n*.4)}</td><td class="n">${f(S.prop*S.n*.8)}</td><td class="n">–</td></tr>`;
-if(P.dal)q+=`<tr><td>DA Dallage ${f(P.ep*100,0)} cm (300 kg/m³, +5 %)</td><td class="n">${f(vDal)}</td><td class="n">${f(vDal*300/50,1)}</td><td class="n">${f(vDal*.45)}</td><td class="n">${f(vDal*.8)}</td><td class="n">–</td></tr>`;
-q+=`<tr class="tot"><td>Total avec pertes (béton +5 %, acier +10 %)</td><td class="n">${f(VT)}</td><td class="n">${sacs}</td><td class="n">${f(SAB)}</td><td class="n">${f(GRA)}</td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
+const vp=S.prop*S.n;
+EL.forEach(x=>q+=`<tr><td>${x.id} ${x.name} ×${x.n}</td><td class="n">${f(x.v/DIV)}</td><td class="n">${f(x.v*350/50/DIV,1)}</td><td class="n">${f(x.v*.4/DIV)}</td><td class="n">${f(x.v*.8/DIV)}</td><td class="n">${f(x.kg*x.n/DIV,0)}</td></tr>`);
+q+=`<tr><td>Béton de propreté (150 kg/m³)</td><td class="n">${f(vp/DIV)}</td><td class="n">${f(vp*150/50/DIV,1)}</td><td class="n">${f(vp*.4/DIV)}</td><td class="n">${f(vp*.8/DIV)}</td><td class="n">–</td></tr>`;
+if(P.dal)q+=`<tr><td>DA Dallage ${f(P.ep*100,0)} cm (300 kg/m³, +5 %)</td><td class="n">${f(vDal/DIV)}</td><td class="n">${f(vDal*300/50/DIV,1)}</td><td class="n">${f(vDal*.45/DIV)}</td><td class="n">${f(vDal*.8/DIV)}</td><td class="n">–</td></tr>`;
+q+=`<tr class="tot"><td>Total avec pertes (béton +5 %, acier +10 %)${DV}</td><td class="n">${f(VT)}</td><td class="n">${sacs}</td><td class="n">${f(SAB)}</td><td class="n">${f(GRA)}</td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
 const rows=Math.ceil((ramp+debR-.15)/(P.toleL-.15)), perRow=Math.ceil((P.L+.4)/P.toleU), nT=2*rows*perRow;
 const cov=`<table><thead><tr><th>Couverture et divers</th><th class="n">Quantité</th></tr></thead><tbody>
  <tr><td>Tôles ondulées ${f(P.toleL)} m (${rows} rangs × ${perRow} par pente, recouvr. 15 cm)</td><td class="n">${nT}</td></tr>
@@ -534,7 +537,7 @@ const D=[];const add=(g,lab,q,u,pu,tag)=>D.push({g,lab,q,u,pu,t:q*pu,tag});
 add('Béton','Ciment (sacs de 50 kg)',sacs,'sac',P.pCim);
 add('Béton','Sable',+sable.toFixed(2),'m³',P.pSab,1);
 add('Béton','Gravier',+grav.toFixed(2),'m³',P.pGra,1);
-[6,8,10,12].forEach(d=>{const L=byD[d]*1.1;if(L>0)add('Acier',`Fer HA${d} (${Math.ceil(L/12)} barres de 12 m)`,Math.round(L*KG[d]),'kg',P['p'+d]);});
+[6,8,10,12].forEach(d=>{const L=byD[d]*1.1/DIV;if(L>0)add('Acier',`Fer HA${d} (${Math.ceil(L/12)} barres de 12 m)`,Math.round(L*KG[d]),'kg',P['p'+d]);});
 add('Acier','Fil à ligaturer',Math.ceil(kgT*.015),'kg',P.pFil);
 add('Couverture',`Tôles ondulées ${f(P.toleL)} m`,nT,'pièce',P.pTole,1);
 add('Couverture','Faîtières',nFait,'pièce',P.pFait,1);
@@ -564,6 +567,7 @@ if(P.pente<10)al.push('Pente inférieure à 10 % : risque d\'infiltration aux re
 if(P.ent>1.25)al.push('Entraxe supérieur à 1,25 m : les tôles minces risquent de se déformer entre appuis.');
 if(P.dal&&P.ep<.07)al.push(`Dalle de ${f(P.ep*100,0)} cm : en dessous de 7 cm, elle fissure et s'effrite au passage des brouettes. Restez à 8 cm.`);
 if(P.dal&&!P.treillis)al.push('Dalle sans treillis : faites des joints plus rapprochés (panneaux de 3 m maximum).');
+if(DIV>1)al.unshift(`Quantités de fer, ciment, sable, gravier et béton divisées par ${f(DIV,DIV%1?1:0)}. Elles ne couvrent qu'une partie de l'ouvrage dessiné. Mettez 1 dans « Diviser… par » pour retrouver les quantités complètes.`);
 $('alerts').innerHTML=al.map(a=>`<div class="alert">${a}</div>`).join('');
 $('lede').textContent=`Charpente béton armé pour la couverture en tôles d'un poulailler de ${f(P.L)} × ${f(P.W)} m (${f(P.L*P.W,0)} m²), murs existants de ${f(P.H)} m${P.dal?`, dallage béton de ${f(P.ep*100,0)} cm`:''}. Cotes en mètres sauf sections en centimètres. Béton dosé à 350 kg/m³, aciers HA FeE400, enrobage 2,5 cm.`;
 window.__devis={D,sub,imp,tot};
