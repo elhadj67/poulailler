@@ -139,6 +139,16 @@ tr.tot td.n{color:var(--zinc)}
           <button type="button" class="ghost" id="reset">Valeurs par défaut</button>
         </div>
         <div id="toast" role="status"></div>
+        <fieldset id="g-file"><legend><h3>Fichier de sauvegarde</h3></legend>
+          <div class="btns">
+            <button type="button" id="f-new">Nouveau fichier de sauvegarde</button>
+            <button type="button" class="ghost" id="f-open">Ouvrir une sauvegarde</button>
+            <button type="button" id="f-resume" hidden>Reprendre la sauvegarde</button>
+          </div>
+          <input type="file" id="f-input" accept=".json,application/json" hidden>
+          <p class="note" id="f-help"></p>
+          <p class="note" id="f-status" role="status" style="color:var(--zinc)"></p>
+        </fieldset>
       </div>
       <div class="devis">
         <div class="kpis" id="kpis"></div>
@@ -205,7 +215,7 @@ function buildForm(){
     c.innerHTML=`<input type="checkbox" id="in-${k}"><span>${lab}<small style="display:block;color:var(--muted);font-size:12px">${hint}</small></span>`;
     $(g).appendChild(c);});
   sync();
-  document.querySelectorAll('.params input').forEach(i=>i.addEventListener('input',()=>{read();save();render();}));
+  document.querySelectorAll('.params input:not([type=file])').forEach(i=>i.addEventListener('input',()=>{read();save();render();scheduleWrite();}));
 }
 function sync(){FIELDS.forEach(x=>$('in-'+x[1]).value=P[x[1]]);CHK.forEach(c=>$('in-'+c[0]).checked=!!P[c[0]]);}
 function read(){FIELDS.forEach(x=>{const v=parseFloat($('in-'+x[1]).value);if(!isNaN(v)&&v>0)P[x[1]]=v;else if(ZERO.includes(x[1])&&v===0)P[x[1]]=0;});CHK.forEach(c=>P[c[0]]=$('in-'+c[0]).checked);}
@@ -566,8 +576,81 @@ $('copy').addEventListener('click',()=>{
   lines.push(['','Sous-total','','','',Math.round(d.sub)].join('\t'),['','Imprévus '+P.imprev+' %','','','',Math.round(d.imp)].join('\t'),['','TOTAL','','','',Math.round(d.tot)].join('\t'));
   navigator.clipboard.writeText(lines.join('\n')).then(()=>{$('toast').textContent='Devis copié : collez-le dans Excel ou Google Sheets.';},()=>{$('toast').textContent='Copie refusée par le navigateur. Sélectionnez le tableau du devis et copiez-le.';});
 });
-$('reset').addEventListener('click',()=>{P={...DEF};sync();save();render();$('toast').textContent='Valeurs par défaut rétablies.';});
-buildForm();render();
+$('reset').addEventListener('click',()=>{P={...DEF};sync();save();render();scheduleWrite();$('toast').textContent='Valeurs par défaut rétablies.';});
+
+/* ---------- Sauvegarde dans un fichier ---------- */
+const IN_FRAME=(()=>{try{return window.self!==window.top;}catch(e){return true;}})();
+const FS=!IN_FRAME&&('showSaveFilePicker' in window);
+const TYPES=[{description:'Sauvegarde poulailler',accept:{'application/json':['.json']}}];
+let fh=null, wTimer=null, savedH=null;
+const fstat=t=>{$('f-status').textContent=t;};
+const now=()=>new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const payload=()=>JSON.stringify({app:'poulailler-plans',version:1,date:new Date().toISOString(),params:P},null,2);
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('poulailler',1);r.onupgradeneeded=()=>r.result.createObjectStore('h');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbSet(v){try{const db=await idb();db.transaction('h','readwrite').objectStore('h').put(v,'file');}catch(e){}}
+async function idbGet(){try{const db=await idb();return await new Promise(r=>{const q=db.transaction('h').objectStore('h').get('file');q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null);});}catch(e){return null;}}
+function applyData(txt){
+  const d=JSON.parse(txt), p=d&&typeof d==='object'?(d.params||d):null;
+  if(!p||typeof p!=='object'||!('L' in p))throw new Error('format');
+  P={...DEF,...p};sync();save();render();
+}
+async function writeFile(){
+  if(!fh)return;
+  try{const w=await fh.createWritable();await w.write(payload());await w.close();fstat(`Enregistré dans ${fh.name} à ${now()}.`);}
+  catch(e){savedH=fh;fh=null;showResume();fstat('Le navigateur a retiré l\'autorisation d\'écrire. Cliquez sur « Reprendre la sauvegarde ».');}
+}
+function scheduleWrite(){if(fh){clearTimeout(wTimer);wTimer=setTimeout(writeFile,600);}}
+function showResume(){if(savedH){$('f-resume').textContent=`Reprendre la sauvegarde dans ${savedH.name}`;$('f-resume').hidden=false;}}
+function download(){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([payload()],{type:'application/json'}));
+  a.download='poulailler.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  fstat(`Fichier poulailler.json téléchargé à ${now()}. Refaites « Exporter » après vos prochaines modifications.`);
+}
+async function link(h){fh=h;savedH=h;$('f-resume').hidden=true;await idbSet(h);}
+$('f-new').addEventListener('click',async()=>{
+  if(!FS){download();return;}
+  try{const h=await window.showSaveFilePicker({suggestedName:'poulailler.json',types:TYPES});await link(h);await writeFile();
+    if(fh)fstat(`Sauvegarde automatique active dans ${h.name} : chaque modification y est enregistrée.`);}
+  catch(e){if(e.name!=='AbortError')fstat('Impossible de créer le fichier : '+e.message);}
+});
+$('f-open').addEventListener('click',async()=>{
+  if(!FS){$('f-input').click();return;}
+  try{const [h]=await window.showOpenFilePicker({types:TYPES});applyData(await (await h.getFile()).text());
+    const perm=await h.requestPermission({mode:'readwrite'});
+    if(perm==='granted'){await link(h);fstat(`Sauvegarde chargée depuis ${h.name}. Les prochaines modifications y seront enregistrées automatiquement.`);}
+    else fstat(`Sauvegarde chargée depuis ${h.name}, sans enregistrement automatique (autorisation refusée).`);}
+  catch(e){if(e.name==='AbortError')return;fstat(e.message==='format'?'Ce fichier n\'est pas une sauvegarde du poulailler.':'Lecture impossible : '+e.message);}
+});
+$('f-input').addEventListener('change',()=>{
+  const file=$('f-input').files[0];if(!file)return;
+  const r=new FileReader();r.onload=()=>{try{applyData(r.result);fstat(`Sauvegarde chargée depuis ${file.name}.`);}catch(e){fstat('Ce fichier n\'est pas une sauvegarde du poulailler.');}$('f-input').value='';};
+  r.readAsText(file);
+});
+$('f-resume').addEventListener('click',async()=>{
+  if(!savedH)return;
+  try{if(await savedH.requestPermission({mode:'readwrite'})!=='granted'){fstat('Autorisation refusée.');return;}
+    applyData(await (await savedH.getFile()).text());await link(savedH);fstat(`Sauvegarde reprise : ${savedH.name}. Valeurs rechargées depuis le fichier.`);}
+  catch(e){fstat('Fichier introuvable ou illisible. Créez un nouveau fichier ou ouvrez-en un autre.');}
+});
+async function initFile(){
+  if(IN_FRAME){
+    $('f-new').hidden=$('f-open').hidden=true;
+    $('f-help').innerHTML='Cette page ne peut pas écrire de fichier. Ouvrez la version GitHub (raw.githack ou GitHub Pages) pour la sauvegarde dans un fichier. Vos valeurs restent mémorisées dans ce navigateur.';
+    return;
+  }
+  if(!FS){
+    $('f-new').textContent='Exporter (télécharger)';$('f-open').textContent='Importer';
+    $('f-help').textContent='Ce navigateur ne permet pas l\'enregistrement automatique (Chrome ou Edge sur ordinateur le permettent). Exportez après vos modifications, importez pour retrouver vos valeurs ailleurs.';
+    return;
+  }
+  $('f-help').textContent='Choisissez un fichier une fois : chaque modification y est ensuite enregistrée automatiquement. Après un redémarrage du navigateur, un clic sur « Reprendre » suffit.';
+  savedH=await idbGet();
+  if(savedH){
+    try{if(await savedH.queryPermission({mode:'readwrite'})==='granted'){applyData(await (await savedH.getFile()).text());await link(savedH);fstat(`Sauvegarde automatique active dans ${savedH.name}.`);return;}}catch(e){}
+    showResume();fstat(`Dernier fichier utilisé : ${savedH.name}. Cliquez sur « Reprendre » pour réactiver l'enregistrement automatique.`);
+  }
+}
+buildForm();render();initFile();
 </script>
 
 </body>

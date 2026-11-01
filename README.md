@@ -9,6 +9,8 @@ Outils web pour la couverture en tôles d'un poulailler sur terrain muré de 135
 
 Toutes les dimensions et tous les prix unitaires (FCFA) sont modifiables dans la page ; plans, quantités et devis se recalculent. Les valeurs saisies sont gardées dans le navigateur.
 
+**Sauvegarde dans un fichier** (bloc « Fichier de sauvegarde ») : avec Chrome ou Edge sur ordinateur, choisissez une fois un fichier `poulailler.json`, chaque modification y est ensuite enregistrée automatiquement ; après redémarrage, cliquez sur « Reprendre ». Sur les autres navigateurs : boutons Exporter / Importer.
+
 ## Utilisation
 
 Ouvrir `index.html` dans un navigateur, ou activer GitHub Pages (Settings → Pages → branche `main`, dossier `/`).
