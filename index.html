@@ -124,7 +124,7 @@ tr.tot td.n{color:var(--zinc)}
     <p class="lede" id="lede"></p>
   </header>
   <nav aria-label="Planches">
-    <a href="#prix">Paramètres et devis</a><a href="#pl1">1 · Repérage</a><a href="#pl2">2 · Coupes générales</a><a href="#pl3">3 · Poutrelle P1</a><a href="#pl4">4 · Poutre faîtière PF</a><a href="#pl5">5 · Poteaux et semelles</a><a href="#pl6">6 · Chaînage CH</a><a href="#pl7">7 · Nomenclature et quantités</a>
+    <a href="#prix">Paramètres et devis</a><a href="#pl1">1 · Repérage</a><a href="#pl2">2 · Coupes générales</a><a href="#pl3">3 · Poutrelle P1</a><a href="#pl4">4 · Poutre faîtière PF</a><a href="#pl5">5 · Poteaux et semelles</a><a href="#pl6">6 · Chaînage CH</a><a href="#pl7">7 · Dallage DA</a><a href="#pl8">8 · Nomenclature et quantités</a>
   </nav>
   <div class="legend"><span><i style="background:var(--conc);border:1px solid var(--ink)"></i>béton</span><span><i style="background:var(--rebar)"></i>aciers</span><span><i style="background:var(--zinc)"></i>tôles / poutre faîtière</span><span><i style="background:var(--muted);opacity:.55"></i>maçonnerie existante</span></div>
   <section class="sheet" id="prix">
@@ -132,6 +132,7 @@ tr.tot td.n{color:var(--zinc)}
     <div class="work">
       <div class="params">
         <fieldset id="g-geo"><legend><h3>Géométrie</h3></legend></fieldset>
+        <fieldset id="g-dal"><legend><h3>Dallage</h3></legend></fieldset>
         <fieldset id="g-prix"><legend><h3>Prix unitaires (FCFA)</h3></legend></fieldset>
         <div class="btns">
           <button type="button" id="copy">Copier le devis pour Excel</button>
@@ -163,6 +164,8 @@ const FIELDS=[
  ['g-geo','fond','Profondeur des semelles','m',.8,.1],
  ['g-geo','toleL','Longueur d\'une tôle','m',2,.1],
  ['g-geo','toleU','Largeur utile d\'une tôle','m',.8,.05],
+ ['g-dal','ep','Épaisseur de la dalle','m',.08,.01,'8 cm conseillé, 7 cm minimum'],
+ ['g-dal','her','Épaisseur du hérisson','m',.10,.01,'0 si sol déjà stable'],
  ['g-prix','pCim','Ciment, sac de 50 kg','',3800,50],
  ['g-prix','pSab','Sable, m³','',12000,500,'à vérifier'],
  ['g-prix','pGra','Gravier, m³','',25000,500,'à vérifier'],
@@ -174,12 +177,21 @@ const FIELDS=[
  ['g-prix','pTole','Tôle ondulée, pièce','',4500,100,'à vérifier'],
  ['g-prix','pFait','Faîtière, pièce','',3500,100,'à vérifier'],
  ['g-prix','pFix','Crochet / tige de fixation','',150,10],
+ ['g-prix','pTr','Treillis soudé 2,40×6,00, panneau','',18000,500,'à vérifier'],
+ ['g-prix','pHer','Pierres concassées (hérisson), m³','',20000,500,'à vérifier'],
+ ['g-prix','pPoly','Film polyane, m²','',400,25,'à vérifier'],
+ ['g-prix','pBande','Bande périphérique, m','',250,25,'à vérifier'],
+ ['g-prix','pMOd','Main-d\'œuvre dallage, m²','',2000,100,'à vérifier'],
  ['g-prix','pCoff','Coffrage bois (forfait)','',150000,5000],
  ['g-prix','pMO','Main-d\'œuvre (forfait)','',400000,10000],
  ['g-prix','pTrans','Transport (forfait)','',75000,5000],
  ['g-prix','imprev','Imprévus','%',10,1],
 ];
-const DEF=Object.fromEntries(FIELDS.map(x=>[x[1],x[4]]));DEF.chain=true;
+const DEF=Object.fromEntries(FIELDS.map(x=>[x[1],x[4]]));DEF.chain=true;DEF.dal=true;DEF.treillis=true;
+const CHK=[['chain','g-geo','Inclure le chaînage en tête de mur','décochez s\'il existe déjà'],
+ ['dal','g-dal','Inclure le dallage béton','sur toute la surface intérieure'],
+ ['treillis','g-dal','Treillis soudé ST10 dans la dalle','limite la fissuration']];
+const ZERO=['imprev','her'];
 const KEY='poulailler-plans-v1';
 let P={...DEF};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)P={...DEF,...s};}catch(err){}
@@ -189,14 +201,14 @@ function buildForm(){
     const row=document.createElement('label');row.className='f';row.htmlFor='in-'+k;
     row.innerHTML=`<span>${lab}${u?` <span style="color:var(--muted);font-family:var(--f-mono)">(${u})</span>`:''}${hint?`<small>${hint==='à vérifier'?'<span class="tag">à vérifier</span>':hint}</small>`:''}</span><input type="number" id="in-${k}" step="${step}" min="0">`;
     $(g).appendChild(row);});
-  const c=document.createElement('label');c.className='chk';c.htmlFor='in-chain';
-  c.innerHTML='<input type="checkbox" id="in-chain"><span>Inclure le chaînage en tête de mur<small style="display:block;color:var(--muted);font-size:12px">décochez s\'il existe déjà</small></span>';
-  $('g-geo').appendChild(c);
+  CHK.forEach(([k,g,lab,hint])=>{const c=document.createElement('label');c.className='chk';c.htmlFor='in-'+k;
+    c.innerHTML=`<input type="checkbox" id="in-${k}"><span>${lab}<small style="display:block;color:var(--muted);font-size:12px">${hint}</small></span>`;
+    $(g).appendChild(c);});
   sync();
   document.querySelectorAll('.params input').forEach(i=>i.addEventListener('input',()=>{read();save();render();}));
 }
-function sync(){FIELDS.forEach(x=>$('in-'+x[1]).value=P[x[1]]);$('in-chain').checked=!!P.chain;}
-function read(){FIELDS.forEach(x=>{const v=parseFloat($('in-'+x[1]).value);if(!isNaN(v)&&v>0)P[x[1]]=v;else if(x[1]==='imprev'&&v===0)P[x[1]]=0;});P.chain=$('in-chain').checked;}
+function sync(){FIELDS.forEach(x=>$('in-'+x[1]).value=P[x[1]]);CHK.forEach(c=>$('in-'+c[0]).checked=!!P[c[0]]);}
+function read(){FIELDS.forEach(x=>{const v=parseFloat($('in-'+x[1]).value);if(!isNaN(v)&&v>0)P[x[1]]=v;else if(ZERO.includes(x[1])&&v===0)P[x[1]]=0;});CHK.forEach(c=>P[c[0]]=$('in-'+c[0]).checked);}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(P));}catch(err){}}
 
 function render(){
@@ -289,6 +301,7 @@ function coupeA(){
   const VW=(P.W+2*P.deb)*s+2*pad+40, VH=gy+P.fond*s+70;
   let o=`<rect class="soil" x="0" y="${gy}" width="${VW}" height="${P.fond*s+70}"/><line class="gnd" x1="0" y1="${gy}" x2="${VW}" y2="${gy}"/>`;
   const tw=.15*s;
+  if(P.dal)o+=`<rect class="c2" x="${X(0)}" y="${gy}" width="${P.W*s}" height="${Math.max(2.5,P.ep*s)}"/>`+T(X(P.W*.25),gy+Math.max(2.5,P.ep*s)+14,'DA dallage '+f(P.ep*100,0)+' cm','tx s');
   o+=`<rect class="w" x="${X(0)-tw}" y="${Y(P.H-.2)}" width="${tw}" height="${(P.H-.2)*s}"/><rect class="w" x="${X(P.W)}" y="${Y(P.H-.2)}" width="${tw}" height="${(P.H-.2)*s}"/>`;
   o+=`<rect class="c2" x="${X(0)-tw}" y="${Y(P.H)}" width="${tw}" height="${.2*s}"/><rect class="c2" x="${X(P.W)}" y="${Y(P.H)}" width="${tw}" height="${.2*s}"/>`;
   const pc=X(half);
@@ -394,7 +407,7 @@ function semellePlan(){
 }
 
 /* ---------- Assemblage ---------- */
-const sheet=(n,id,title,draw,data,scale)=>`<section class="sheet" id="pl${n}"><div class="sh-head"><h2>${title}</h2><span class="no">Planche ${n} / 7</span></div>
+const sheet=(n,id,title,draw,data,scale)=>`<section class="sheet" id="pl${n}"><div class="sh-head"><h2>${title}</h2><span class="no">Planche ${n} / 8</span></div>
   <div class="sh-body${data?'':' full'}"><div class="draw">${draw}</div>${data?`<div class="data">${data}</div>`:''}</div>
   <div class="cart"><div><span>Projet</span><b>Poulailler ${f(P.L)} × ${f(P.W)}</b></div><div><span>Repère</span><b>${id}</b></div><div><span>Échelle</span><b>${scale}</b></div><div><span>Date</span><b>13/10/2026</b></div></div></section>`;
 
@@ -418,7 +431,58 @@ html+=sheet(5,'PO · S','Poteaux PO et semelles S · ×'+nPost,`<div class="row"
 html+=!P.chain?sheet(6,'CH','Chaînage CH · existant, non compté','<p class="note">Le chaînage est déclaré existant dans les paramètres : il n\'est pas compté dans les quantités ni le devis. Vérifiez que son dessus est de niveau à +'+f(P.H)+' pour recevoir les poutrelles.</p>',null,'—'):sheet(6,'CH','Chaînage CH · 15×20 · '+f(perCH,1)+' m',`<div class="row"><figure>${section(.15,.20,[2,10],[2,10],'Coupe 5-5',{s:900})}<figcaption><b>Coupe 5-5.</b> Chaînage coulé sur l'arase des murs, sur tout le pourtour.</figcaption></figure>
   <p class="note">À réaliser seulement si les murs n'ont pas déjà un chaînage en tête. Recouvrements de 50 cm, retours d'angle en L. Le dessus du chaînage doit être de niveau à +${f(P.H)} pour recevoir les poutrelles. Prévoir 2 HA8 en attente tous les 2 m pour liaisonner les poutrelles d'about.</p></div>`,dataPanel(CH),'1/5');
 
-/* Planche 7 : nomenclature + quantités */
+/* Planche 7 : dallage */
+const surf=P.L*P.W, perim=2*(P.L+P.W);
+const vDal=P.dal?surf*P.ep*1.05:0, vHer=P.dal?surf*P.her*1.1:0;
+const nTr=P.dal&&P.treillis?Math.ceil(surf/12.5):0, polyM2=P.dal?Math.ceil(surf*1.1):0;
+const nJx=Math.ceil(P.L/4), nJy=Math.ceil(P.W/4), jl=(nJx-1)*P.W+(nJy-1)*P.L;
+function dallagePlan(){
+  const pad=64, s=Math.min(880/P.L,400/P.W), w=P.L*s, h=P.W*s, t=9;
+  let o=`<rect class="w" x="${pad-t}" y="${pad-t}" width="${w+2*t}" height="${h+2*t}"/><rect class="c2" x="${pad}" y="${pad}" width="${w}" height="${h}"/>`;
+  for(let i=1;i<nJx;i++){const x=pad+i*P.L/nJx*s;o+=`<line class="dim" stroke-width="1.4" stroke-dasharray="9 4" x1="${x}" y1="${pad}" x2="${x}" y2="${pad+h}"/>`;}
+  for(let j=1;j<nJy;j++){const y=pad+j*P.W/nJy*s;o+=`<line class="dim" stroke-width="1.4" stroke-dasharray="9 4" x1="${pad}" y1="${y}" x2="${pad+w}" y2="${y}"/>`;}
+  for(let j=0;j<=nSpan;j++){const x=pad+j*span*s;o+=`<rect class="post" x="${x-.1*s-2}" y="${pad+h/2-.1*s-2}" width="${.2*s+4}" height="${.2*s+4}"/>`;}
+  const cw=Math.max(8,.25*s);
+  o+=`<rect fill="var(--zinc)" opacity=".55" x="${pad+w-cw}" y="${pad}" width="${cw}" height="${h}"/>`+T(pad+w-cw/2,pad+h/2,'caniveau','tx s','middle',-90);
+  [0.2,0.8].forEach(k=>{const y=pad+h*k, xa=pad+w*.55, xb=pad+w*.78;
+    o+=`<line stroke="var(--zinc)" stroke-width="2" x1="${xa}" y1="${y}" x2="${xb}" y2="${y}"/><polygon fill="var(--zinc)" points="${xb+10},${y} ${xb-2},${y-6} ${xb-2},${y+6}"/>`+T((xa+xb)/2,y-8,'pente 1 %','tx s');});
+  o+=dimH(pad,pad+w,pad-38,f(P.L)+' m')+dimH(pad,pad+P.L/nJx*s,pad+h+30,f(P.L/nJx));
+  o+=dimV(pad-38,pad,pad+h,f(P.W)+' m')+dimV(pad+w+28,pad,pad+P.W/nJy*s,f(P.W/nJy),1);
+  o+=T(pad+P.L/nJx*s+6,pad+14,'joint scié','tx s','start');
+  return `<div class="scroll"><svg viewBox="0 0 ${w+2*pad+10} ${h+2*pad}" style="min-width:560px" role="img" aria-label="Dallage vue en plan">${o}</svg></div>`;
+}
+function dallageCoupe(){
+  const s=420, pad=30, wt=.15*s, x0=pad+wt, x1=x0+1.25*s, yT=pad+.30*s, ep=Math.max(6,P.ep*s), he=P.her*s;
+  const yP=yT+ep, yS=yP+he, VW=x1+250, VH=yS+.16*s+20;
+  let o=`<rect class="soil" x="0" y="${yS}" width="${x1+10}" height="${VH-yS}"/>`;
+  if(he>0){o+=`<rect fill="var(--soil)" x="${x0}" y="${yP}" width="${x1-x0}" height="${he}"/>`;
+    for(let i=0;i<34;i++){const cx=x0+8+((i*53)%Math.floor(x1-x0-16)), cy=yP+5+((i*29)%Math.max(4,Math.floor(he-10)));o+=`<circle cx="${cx}" cy="${cy}" r="${3+(i%3)}" fill="var(--muted)" opacity=".55"/>`;}}
+  o+=`<line stroke="var(--zinc)" stroke-width="2" x1="${x0}" y1="${yP}" x2="${x1}" y2="${yP}"/>`;
+  o+=`<rect class="c" x="${x0+4}" y="${yT}" width="${x1-x0-4}" height="${ep}"/>`;
+  o+=`<rect fill="var(--zinc-soft)" stroke="var(--ink)" stroke-width=".6" x="${x0}" y="${yT}" width="4" height="${ep}"/>`;
+  if(P.treillis){const ym=yT+ep/2;o+=`<line class="bar t" x1="${x0+14}" y1="${ym}" x2="${x1-6}" y2="${ym}"/>`;for(let x=x0+20;x<x1-6;x+=.2*s)o+=`<circle class="dot" cx="${x}" cy="${ym}" r="2.5"/>`;}
+  o+=`<rect class="w" x="${pad}" y="${pad-10}" width="${wt}" height="${VH-pad}"/>`+T(pad+wt/2,pad+40,'mur','tx s','middle',-90);
+  o+=`<line class="gnd" x1="${x0}" y1="${yT}" x2="${x1}" y2="${yT}"/>`+T(x0+60,yT-8,'±0,00','tx s');
+  o+=dimV(x1+18,yT,yP,f(P.ep*100,0),1); if(he>0)o+=dimV(x1+18,yP,yS,f(P.her*100,0),1);
+  const lx=x1+44, L=(y,s1)=>`<line class="dim" x1="${x1-20}" y1="${y}" x2="${lx-4}" y2="${y}"/>`+T(lx,y+4,s1,'tx','start');
+  o+=L(yT+ep*.3,'dalle béton 300 kg/m³');
+  if(P.treillis)o+=L(yT+ep*.75,'treillis ST10 à mi-épaisseur');
+  o+=L(yP+(he>0?3:0)+ (he>0?0:2),'film polyane');
+  if(he>0)o+=L(yP+he*.65,'hérisson compacté');
+  o+=L(yS+.08*s,'sol compacté');
+  o+=T(x0+2,yT-24,'bande 1 cm','tx s','start');
+  return `<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Coupe du dallage contre le mur">${o}</svg>`;
+}
+const dalData=`<h3>Dallage DA</h3><dl><dt>Surface</dt><dd>${f(surf)} m²</dd><dt>Épaisseur</dt><dd>${f(P.ep*100,0)} cm</dd>
+ <dt>Béton (+5 %)</dt><dd>${f(vDal)} m³</dd><dt>Ciment</dt><dd>${f(vDal*300/50,1)} sacs</dd><dt>Sable</dt><dd>${f(vDal*.45)} m³</dd><dt>Gravier</dt><dd>${f(vDal*.8)} m³</dd>
+ ${P.treillis?`<dt>Treillis ST10</dt><dd>${nTr} pann.</dd>`:''}${P.her>0?`<dt>Hérisson (+10 %)</dt><dd>${f(vHer)} m³</dd>`:''}
+ <dt>Film polyane</dt><dd>${polyM2} m²</dd><dt>Joints sciés</dt><dd>${f(jl,1)} m</dd><dt>Bande périph.</dt><dd>${f(perim,1)} m</dd></dl>`;
+html+=P.dal?sheet(7,'DA',`Dallage DA · ${f(P.ep*100,0)} cm · ${f(surf,0)} m²`,`<figure>${dallagePlan()}<figcaption><b>Vue en plan.</b> Dalle coupée en ${nJx*nJy} panneaux d'environ ${f(P.L/nJx)} × ${f(P.W/nJy)} m par des joints sciés (1/3 de l'épaisseur, dans les 24 à 48 h). Pente de 1 % vers un caniveau côté pignon pour le lavage ; le côté se choisit sur place selon la porte.</figcaption></figure>
+  <div class="row"><figure>${dallageCoupe()}<figcaption><b>Coupe contre le mur.</b> Bande de polystyrène de 1 cm entre la dalle et les murs, et autour des poteaux.</figcaption></figure>
+  <p class="note">Ordre d'exécution : décaper et compacter le sol, régler le hérisson, poser le polyane avec 20 cm de recouvrement, poser le treillis sur cales de ${f(P.ep*50,0)} cm, couler en une fois par panneaux, tirer à la règle, scier les joints, arroser 7 jours. Couler après les poteaux et semelles, avant la toiture ou sous abri. Dosage dallage : 300 kg/m³, soit 1 sac pour environ 70 L de sable et 130 L de gravier.</p></div>`,dalData,'1/100 (plan) · 1/10 (coupe)')
+ :sheet(7,'DA','Dallage DA · non inclus','<p class="note">Le dallage est désactivé dans les paramètres : il n\'est compté ni dans les quantités ni dans le devis.</p>',null,'—');
+
+/* Planche 8 : nomenclature + quantités */
 let nom=`<table><thead><tr><th>Rep.</th><th>Élément</th><th>Ø</th><th>Forme</th><th class="n">L unit. (m)</th><th class="n">Nb / élém.</th><th class="n">Nb élém.</th><th class="n">L totale (m)</th><th class="n">Poids (kg)</th></tr></thead><tbody>`;
 const byD={6:0,8:0,10:0,12:0};
 EL.forEach(x=>x.bars.forEach(b=>{const Lt=b[2]*b[3]*x.n, kg=Lt*KG[b[1]];byD[b[1]]+=Lt;
@@ -428,27 +492,34 @@ let rec=`<table><thead><tr><th>Diamètre</th><th class="n">L nette (m)</th><th c
 let kgT=0;[6,8,10,12].forEach(d=>{const L=byD[d]*1.1,kg=L*KG[d];kgT+=kg;rec+=`<tr><td>HA${d} (${KG[d]} kg/m)</td><td class="n">${f(byD[d],1)}</td><td class="n">${f(L,1)}</td><td class="n">${Math.ceil(L/12)}</td><td class="n">${f(kg,0)}</td></tr>`;});
 rec+=`<tr class="tot"><td>Total acier</td><td></td><td></td><td></td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
 const vRA=EL.reduce((a,x)=>a+x.v,0)*1.05, vPr=S.prop*S.n*1.05;
-const cim=vRA*350+vPr*150, sacs=Math.ceil(cim/50);
+const cim=vRA*350+vPr*150+vDal*300, sacs=Math.ceil(cim/50);
+const VT=vRA+vPr+vDal, SAB=(vRA+vPr)*.4+vDal*.45, GRA=VT*.8;
 let q=`<table><thead><tr><th>Élément</th><th class="n">Béton (m³)</th><th class="n">Ciment (sacs)</th><th class="n">Sable (m³)</th><th class="n">Gravier (m³)</th><th class="n">Acier (kg)</th></tr></thead><tbody>`;
 EL.forEach(x=>q+=`<tr><td>${x.id} ${x.name} ×${x.n}</td><td class="n">${f(x.v)}</td><td class="n">${f(x.v*350/50,1)}</td><td class="n">${f(x.v*.4)}</td><td class="n">${f(x.v*.8)}</td><td class="n">${f(x.kg*x.n,0)}</td></tr>`);
 q+=`<tr><td>Béton de propreté (150 kg/m³)</td><td class="n">${f(S.prop*S.n)}</td><td class="n">${f(S.prop*S.n*150/50,1)}</td><td class="n">${f(S.prop*S.n*.4)}</td><td class="n">${f(S.prop*S.n*.8)}</td><td class="n">–</td></tr>`;
-q+=`<tr class="tot"><td>Total avec pertes (béton +5 %, acier +10 %)</td><td class="n">${f(vRA+vPr)}</td><td class="n">${sacs}</td><td class="n">${f((vRA+vPr)*.4)}</td><td class="n">${f((vRA+vPr)*.8)}</td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
+if(P.dal)q+=`<tr><td>DA Dallage ${f(P.ep*100,0)} cm (300 kg/m³, +5 %)</td><td class="n">${f(vDal)}</td><td class="n">${f(vDal*300/50,1)}</td><td class="n">${f(vDal*.45)}</td><td class="n">${f(vDal*.8)}</td><td class="n">–</td></tr>`;
+q+=`<tr class="tot"><td>Total avec pertes (béton +5 %, acier +10 %)</td><td class="n">${f(VT)}</td><td class="n">${sacs}</td><td class="n">${f(SAB)}</td><td class="n">${f(GRA)}</td><td class="n">${f(kgT,0)}</td></tr></tbody></table>`;
 const rows=Math.ceil((ramp+debR-.15)/(P.toleL-.15)), perRow=Math.ceil((P.L+.4)/P.toleU), nT=2*rows*perRow;
 const cov=`<table><thead><tr><th>Couverture et divers</th><th class="n">Quantité</th></tr></thead><tbody>
  <tr><td>Tôles ondulées ${f(P.toleL)} m (${rows} rangs × ${perRow} par pente, recouvr. 15 cm)</td><td class="n">${nT}</td></tr>
  <tr><td>Faîtières</td><td class="n">${Math.ceil((P.L+.4)/1.8)}</td></tr>
  <tr><td>Crochets / tiges de fixation (6 par tôle)</td><td class="n">${nT*6}</td></tr>
  <tr><td>Fil à ligaturer</td><td class="n">${Math.ceil(kgT*.015)} kg</td></tr>
- <tr><td>Eau de gâchage</td><td class="n">≈ ${f((vRA+vPr)*175/1000,1)} m³</td></tr></tbody></table>`;
-html+=sheet(7,'—','Nomenclature des aciers et quantités',`<h3>Nomenclature des aciers</h3><div class="tbl">${nom}</div>
+ ${P.dal?`${P.treillis?`<tr><td>Treillis soudé ST10, panneaux 2,40 × 6,00 (recouvr. 20 cm)</td><td class="n">${nTr}</td></tr>`:''}
+ ${P.her>0?`<tr><td>Hérisson pierres concassées (+10 %)</td><td class="n">${f(vHer)} m³</td></tr>`:''}
+ <tr><td>Film polyane</td><td class="n">${polyM2} m²</td></tr>
+ <tr><td>Bande périphérique polystyrène 1 cm</td><td class="n">${f(perim,1)} m</td></tr>
+ <tr><td>Joints sciés</td><td class="n">${f(jl,1)} m</td></tr>`:''}
+ <tr><td>Eau de gâchage</td><td class="n">≈ ${f(VT*175/1000,1)} m³</td></tr></tbody></table>`;
+html+=sheet(8,'—','Nomenclature des aciers et quantités',`<h3>Nomenclature des aciers</h3><div class="tbl">${nom}</div>
  <h3>Récapitulatif par diamètre</h3><div class="tbl">${rec}</div>
  <h3>Béton et granulats</h3><div class="tbl">${q}</div>
- <h3>Couverture</h3><div class="tbl">${cov}</div>
+ <h3>Couverture${P.dal?' et dallage':''}</h3><div class="tbl">${cov}</div>
  <p class="note">Dosage béton armé : 350 kg de ciment, 400 L de sable, 800 L de gravier 5/15 et 175 L d'eau par m³, soit pour une gâchée d'un sac : 57 L de sable et 115 L de gravier (environ 3 et 6 seaux de 20 L). Sections et ferraillages à faire valider par un technicien local avant coulage.</p>`,null,'—');
 document.getElementById('sheets').innerHTML=html;
 
 /* ---------- Devis ---------- */
-const sable=(vRA+vPr)*.4, grav=(vRA+vPr)*.8, nFait=Math.ceil((P.L+.4)/1.8);
+const sable=SAB, grav=GRA, nFait=Math.ceil((P.L+.4)/1.8);
 const D=[];const add=(g,lab,q,u,pu,tag)=>D.push({g,lab,q,u,pu,t:q*pu,tag});
 add('Béton','Ciment (sacs de 50 kg)',sacs,'sac',P.pCim);
 add('Béton','Sable',+sable.toFixed(2),'m³',P.pSab,1);
@@ -458,6 +529,13 @@ add('Acier','Fil à ligaturer',Math.ceil(kgT*.015),'kg',P.pFil);
 add('Couverture',`Tôles ondulées ${f(P.toleL)} m`,nT,'pièce',P.pTole,1);
 add('Couverture','Faîtières',nFait,'pièce',P.pFait,1);
 add('Couverture','Crochets / tiges de fixation',nT*6,'pièce',P.pFix);
+if(P.dal){
+  if(P.treillis)add('Dallage','Treillis soudé ST10 2,40 × 6,00',nTr,'panneau',P.pTr,1);
+  if(P.her>0)add('Dallage','Pierres concassées pour hérisson',+vHer.toFixed(2),'m³',P.pHer,1);
+  add('Dallage','Film polyane',polyM2,'m²',P.pPoly,1);
+  add('Dallage','Bande périphérique polystyrène',Math.ceil(perim),'m',P.pBande,1);
+  add('Dallage','Main-d\'œuvre dallage',Math.round(surf),'m²',P.pMOd,1);
+}
 add('Divers','Coffrage bois',1,'forfait',P.pCoff);
 add('Divers','Main-d\'œuvre',1,'forfait',P.pMO);
 add('Divers','Transport',1,'forfait',P.pTrans);
@@ -467,15 +545,17 @@ D.forEach(x=>{if(x.g!==g){g=x.g;t+=`<tr class="grp"><td colspan="5">${g}</td></t
   t+=`<tr><td>${x.lab}${x.tag?' <span class="tag">à vérifier</span>':''}</td><td class="n">${f(x.q,x.u==='m³'?2:0)}</td><td>${x.u}</td><td class="n">${f(x.pu,0)}</td><td class="n">${f(x.t,0)}</td></tr>`;});
 t+=`<tr><td colspan="4">Sous-total</td><td class="n">${f(sub,0)}</td></tr><tr><td colspan="4">Imprévus ${f(P.imprev,0)} %</td><td class="n">${f(imp,0)}</td></tr><tr class="tot"><td colspan="4">Total estimé (FCFA)</td><td class="n">${f(tot,0)}</td></tr></tbody>`;
 $('t-devis').innerHTML=t;
-$('kpis').innerHTML=[['Poutrelles',nP],['Béton',f(vRA+vPr)+' m³'],['Acier',f(kgT,0)+' kg'],['Ciment',sacs+' sacs'],['Tôles',nT],['Total',f(tot,0)+' F']]
+$('kpis').innerHTML=[['Poutrelles',nP],['Béton',f(VT)+' m³'],['Acier',f(kgT,0)+' kg'],['Ciment',sacs+' sacs'],['Tôles',nT],['Total',f(tot,0)+' F']]
   .map(([a,b],i)=>`<div class="kpi${i===5?' total':''}"><span>${a}</span><b>${b}</b></div>`).join('');
 const al=[];
 if(half>5)al.push(`Demi-portée de ${f(half)} m : au-delà de 5 m, la poutrelle 15×20 doit passer en 15×25.`);
 if(span>5.5)al.push(`Travée de poutre faîtière de ${f(span)} m : ajoutez un poteau ou augmentez la section.`);
 if(P.pente<10)al.push('Pente inférieure à 10 % : risque d\'infiltration aux recouvrements des tôles.');
 if(P.ent>1.25)al.push('Entraxe supérieur à 1,25 m : les tôles minces risquent de se déformer entre appuis.');
+if(P.dal&&P.ep<.07)al.push(`Dalle de ${f(P.ep*100,0)} cm : en dessous de 7 cm, elle fissure et s'effrite au passage des brouettes. Restez à 8 cm.`);
+if(P.dal&&!P.treillis)al.push('Dalle sans treillis : faites des joints plus rapprochés (panneaux de 3 m maximum).');
 $('alerts').innerHTML=al.map(a=>`<div class="alert">${a}</div>`).join('');
-$('lede').textContent=`Charpente béton armé pour la couverture en tôles d'un poulailler de ${f(P.L)} × ${f(P.W)} m (${f(P.L*P.W,0)} m²), murs existants de ${f(P.H)} m. Cotes en mètres sauf sections en centimètres. Béton dosé à 350 kg/m³, aciers HA FeE400, enrobage 2,5 cm.`;
+$('lede').textContent=`Charpente béton armé pour la couverture en tôles d'un poulailler de ${f(P.L)} × ${f(P.W)} m (${f(P.L*P.W,0)} m²), murs existants de ${f(P.H)} m${P.dal?`, dallage béton de ${f(P.ep*100,0)} cm`:''}. Cotes en mètres sauf sections en centimètres. Béton dosé à 350 kg/m³, aciers HA FeE400, enrobage 2,5 cm.`;
 window.__devis={D,sub,imp,tot};
 }
 

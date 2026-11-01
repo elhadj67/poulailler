@@ -4,7 +4,7 @@ Outils web pour la couverture en tôles d'un poulailler sur terrain muré de 135
 
 | Fichier | Contenu |
 |---|---|
-| `index.html` | Plans d'exécution (7 planches) : repérage, coupes A-A et B-B, poutrelle P1, poutre faîtière PF, poteaux et semelles, chaînage, nomenclature des aciers, quantités et devis modifiable |
+| `index.html` | Plans d'exécution (8 planches) : repérage, coupes A-A et B-B, poutrelle P1, poutre faîtière PF, poteaux et semelles, chaînage, dallage béton DA, nomenclature des aciers, quantités et devis modifiable |
 | `devis.html` | Première version : plan simplifié, métré et devis |
 
 Toutes les dimensions et tous les prix unitaires (FCFA) sont modifiables dans la page ; plans, quantités et devis se recalculent. Les valeurs saisies sont gardées dans le navigateur.
@@ -16,6 +16,7 @@ Ouvrir `index.html` dans un navigateur, ou activer GitHub Pages (Settings → Pa
 ## Hypothèses
 
 - Béton armé dosé à 350 kg/m³, aciers HA FeE400, enrobage 2,5 cm.
+- Dallage : 8 cm par défaut, béton 300 kg/m³, treillis ST10, hérisson 10 cm, polyane, joints sciés tous les 4 m environ.
 - Pertes : béton +5 %, acier +10 %.
 - Prix fer et ciment : moyennes ANSD 2ᵉ trimestre 2026. Sable, gravier et tôles : estimations à remplacer par des devis fournisseurs.
 
